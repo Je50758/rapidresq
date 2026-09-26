@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volunteer Program Portal | RapidResQ</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title" style="color:#2563EB;"><span>🧑‍🤝‍🧑</span> Volunteer Program Portal</h1>
+        <p class="page-subtitle">Response-team workspace: recruit &amp; register volunteers, manage team types, view disaster-area volunteers, and dispatch volunteer units</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="loadPortal()">🔄 Refresh</button>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:2rem;">
+      <!-- Recruit volunteer -->
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">➕ Recruit New Volunteer</h3></div>
+        <div style="padding:0.5rem 1.25rem 1.25rem;">
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" id="rec-username" class="form-control" placeholder="e.g. rakib_volunteer">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Temporary Password (min 6 chars)</label>
+            <input type="text" id="rec-password" class="form-control" placeholder="e.g. volunteer123">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Preferred Team Type</label>
+            <select id="rec-type" class="form-control form-select">
+              <option value="MEDICAL_AID">🩺 Medical Aid</option>
+              <option value="RESCUE" selected>🛟 Rescue & Evacuation</option>
+              <option value="LOGISTICS">📦 Logistics & Relief</option>
+              <option value="COMMUNICATION">📡 Communication & Data</option>
+              <option value="FIRE_SUPPORT">🧯 Fire Support</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="recruit()">Register Volunteer</button>
+          <div id="recruit-result" style="margin-top:0.6rem; font-size:0.85rem;"></div>
+        </div>
+      </div>
+
+      <!-- Disaster-area volunteers -->
+      <div class="card">
+        <div class="card-header"><h3 class="card-title">📍 Disaster-Area Volunteers</h3></div>
+        <div style="padding:0.5rem 1.25rem 1.25rem;">
+          <div class="form-group">
+            <label class="form-label">Incident ID</label>
+            <div style="display:flex; gap:0.4rem;">
+              <input type="text" id="area-incident" class="form-control" placeholder="e.g. INC-102">
+              <button class="btn btn-primary btn-sm" onclick="loadArea()">Find</button>
+            </div>
+          </div>
+          <div id="area-result" style="font-size:0.85rem;">Enter an active incident to see volunteer units near it.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Volunteer dispatching -->
+    <div class="card" style="margin-bottom:2rem;">
+      <div class="card-header">
+        <h3 class="card-title">🚀 Volunteer Dispatch System</h3>
+        <span style="font-size:0.75rem; color:var(--text-muted);">Dispatches volunteer units only — professional agencies stay under Admin command</span>
+      </div>
+      <div style="padding:0.5rem 1.25rem 1.25rem;">
+        <div style="display:flex; gap:0.6rem; align-items:end; flex-wrap:wrap;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Incident ID</label>
+            <input type="text" id="dispatch-incident" class="form-control" placeholder="e.g. INC-102" style="width:160px;">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Team Type</label>
+            <select id="dispatch-type" class="form-control form-select" style="width:220px;">
+              <option value="">Any volunteer type</option>
+              <option value="MEDICAL_AID">🩺 Medical Aid</option>
+              <option value="RESCUE">🛟 Rescue & Evacuation</option>
+              <option value="LOGISTICS">📦 Logistics & Relief</option>
+              <option value="COMMUNICATION">📡 Communication & Data</option>
+              <option value="FIRE_SUPPORT">🧯 Fire Support</option>
+            </select>
+          </div>
+          <button class="btn btn-success btn-sm" style="margin-bottom:2px;" onclick="dispatch()">Dispatch Volunteer Unit</button>
+        </div>
+        <div id="dispatch-result" style="margin-top:0.75rem; font-size:0.85rem;"></div>
+      </div>
+    </div>
+
+    <!-- Volunteer registry with management actions -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">🗂️ Registered Volunteers & Units</h3>
+        <span style="font-size:0.8rem; color:var(--text-muted);">Re-assign team types • activate / deactivate</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr><th>Volunteer</th><th>Team Type</th><th>Trust</th><th>Status</th><th>Change Type</th><th>Activation</th></tr>
+          </thead>
+          <tbody id="volunteers-table">
+            <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Loading volunteers...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    async function pf(endpoint, opts = {}) {
+      const token = RapidResQ.getToken();
+      const headers = opts.headers || {};
+      if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : 'Bearer ' + token;
+      if (opts.body) headers['Content-Type'] = 'application/json';
+      const res = await fetch('/api' + endpoint, { ...opts, headers, body: opts.body ? JSON.stringify(opts.body) : undefined });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data && data.message || res.statusText);
+      return data;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      RapidResQ.renderNavbar('team-portal');
+      if (!RapidResQ.requireAuth()) return;
+      const user = RapidResQ.getUser();
+      if (user.role !== 'RESPONSE_TEAM' && user.role !== 'ADMIN') {
+        alert('This portal is for Response Team (volunteer program managers) and Admin accounts.');
+        window.location.href = '/dashboard.html';
+        return;
+      }
+      loadPortal();
+    });
+
+    async function loadPortal() {
+      try {
+        const registry = await pf('/ops/volunteers');
+        const tbody = document.getElementById('volunteers-table');
+        const accounts = Object.entries(registry.accountsByType || {}).flatMap(([type, list]) =>
+          list.map(a => ({ ...a, type })));
+
+        if (accounts.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No volunteers registered yet — recruit the first one above.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = accounts.map(v => `
+          <tr>
+            <td><strong>@${v.username}</strong></td>
+            <td><span class="badge badge-low" style="font-size:0.68rem;">${(v.teamTypeLabel || v.type).replace(/_/g, ' ')}</span></td>
+            <td>${v.trustScore}%</td>
+            <td><span class="badge ${v.active ? 'badge-status-verified' : 'badge-status-resolved'}" style="font-size:0.65rem;">${v.active ? 'ACTIVE' : 'INACTIVE'}</span></td>
+            <td>
+              <select class="form-control form-select" style="width:160px; padding:0.2rem 0.4rem; font-size:0.72rem;" onchange="changeType('${v.username}', this.value)">
+                ${['MEDICAL_AID','RESCUE','LOGISTICS','COMMUNICATION','FIRE_SUPPORT'].map(t =>
+                  `<option value="${t}" ${t === (v.teamType || v.type) ? 'selected' : ''}>${t.replace(/_/g, ' ')}</option>`).join('')}
+              </select>
+            </td>
+            <td>
+              <button class="btn ${v.active ? 'btn-danger' : 'btn-success'} btn-sm" style="padding:0.2rem 0.6rem; font-size:0.72rem;" onclick="toggleActivation('${v.username}')">
+                ${v.active ? 'Deactivate' : 'Activate'}
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Failed to load volunteers.', 'error');
+      }
+    }
+
+    async function recruit() {
+      try {
+        const res = await pf('/team-portal/volunteers/recruit', {
+          method: 'POST',
+          body: {
+            username: document.getElementById('rec-username').value.trim(),
+            password: document.getElementById('rec-password').value,
+            volunteerTeamType: document.getElementById('rec-type').value
+          }
+        });
+        document.getElementById('recruit-result').innerHTML =
+          `<span style="color:var(--emerald); font-weight:700;">✔ ${res.message} @${res.username} (${res.volunteerTeamType})</span>`;
+        RapidResQ.showToast(`Volunteer @${res.username} registered!`, 'success');
+        loadPortal();
+      } catch (err) {
+        document.getElementById('recruit-result').innerHTML = `<span style="color:var(--accent-red);">${err.message}</span>`;
+      }
+    }
+
+    async function changeType(username, teamType) {
+      try {
+        await pf(`/team-portal/volunteers/${username}/team-type`, { method: 'POST', body: { volunteerTeamType: teamType } });
+        RapidResQ.showToast(`@${username} moved to ${teamType.replace(/_/g, ' ')}.`, 'success');
+        loadPortal();
+      } catch (err) { RapidResQ.showToast(err.message, 'error'); }
+    }
+
+    async function toggleActivation(username) {
+      try {
+        const res = await pf(`/team-portal/volunteers/${username}/activation`, { method: 'POST' });
+        RapidResQ.showToast(res.message, 'success');
+        loadPortal();
+      } catch (err) { RapidResQ.showToast(err.message, 'error'); }
+    }
+
+    async function loadArea() {
+      const incidentId = document.getElementById('area-incident').value.trim().toUpperCase();
+      if (!incidentId) return;
+      try {
+        const res = await pf(`/team-portal/disaster-area/${incidentId}?radiusKm=30`);
+        const units = res.volunteerUnits || [];
+        document.getElementById('area-result').innerHTML = units.length === 0
+          ? '<span style="color:var(--text-muted);">No volunteer units within 30 km of this incident.</span>'
+          : units.map(u => `
+              <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-light); padding:0.4rem 0;">
+                <span><strong>${u.name}</strong> <span style="font-family:var(--font-mono); font-size:0.7rem; color:var(--text-dim);">${u.teamId}</span></span>
+                <span><span class="badge badge-low" style="font-size:0.62rem;">${u.distanceKm} km</span>
+                <span class="badge ${u.status === 'AVAILABLE' ? 'badge-status-verified' : 'badge-moderate'}" style="font-size:0.62rem;">${u.status}</span></span>
+              </div>`).join('');
+      } catch (err) {
+        document.getElementById('area-result').innerHTML = `<span style="color:var(--accent-red);">${err.message}</span>`;
+      }
+    }
+
+    async function dispatch() {
+      const incidentId = document.getElementById('dispatch-incident').value.trim().toUpperCase();
+      const teamType = document.getElementById('dispatch-type').value;
+      if (!incidentId) { RapidResQ.showToast('Enter an incident ID.', 'warning'); return; }
+      try {
+        const res = await pf(`/team-portal/dispatch/${incidentId}`, {
+          method: 'POST',
+          body: teamType ? { volunteerTeamType: teamType } : {}
+        });
+        document.getElementById('dispatch-result').innerHTML =
+          `<span style="color:var(--emerald); font-weight:700;">✔ ${res.message}</span> — deployment signal sent to the unit's portal.`;
+        RapidResQ.showToast(`Volunteer unit ${res.team.id} dispatched!`, 'success');
+      } catch (err) {
+        document.getElementById('dispatch-result').innerHTML = `<span style="color:var(--accent-red);">${err.message}</span>`;
+      }
+    }
+  </script>
+</body>
+</html>

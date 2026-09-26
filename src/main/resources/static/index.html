@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RapidResQ — Rapid Disaster Response System</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <!-- Global Navbar -->
+  <div id="navbar-placeholder"></div>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div style="max-width: 1000px; margin: 0 auto;">
+      <div class="hero-tag">
+        <span class="beacon"></span>
+        <span>NATIONAL EMERGENCY RESPONSE PLATFORM • BANGLADESH</span>
+      </div>
+      <h1 class="hero-title">
+        Real-Time Disaster Triage & <span>Community Response</span> Grid
+      </h1>
+      <p class="hero-subtitle">
+        Empowering citizens, volunteers, and national rescue units with crowdsourced incident verification,
+        smart triage prioritization, automated 999 escalation, and post-disaster rehabilitation drives.
+      </p>
+      <div class="hero-cta">
+        <a href="/report-incident.html" class="btn btn-danger btn-lg">🚨 Report An Emergency</a>
+        <a href="/dashboard.html" class="btn btn-primary btn-lg">📊 Live Operations Dashboard</a>
+        <a href="/donations.html" class="btn btn-outline btn-lg">❤️ Relief Campaigns</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Metrics Banner -->
+  <main class="main-content">
+    <div class="grid-4" id="kpi-banner">
+      <div class="kpi-card kpi-red">
+        <div>
+          <div class="kpi-label">Active Emergencies</div>
+          <div class="kpi-value" id="kpi-active">-</div>
+          <div class="kpi-subtext">Currently being coordinated</div>
+        </div>
+        <div class="kpi-icon">🚨</div>
+      </div>
+      <div class="kpi-card kpi-amber">
+        <div>
+          <div class="kpi-label">999 Escalations</div>
+          <div class="kpi-value" id="kpi-escalations">-</div>
+          <div class="kpi-subtext">Critical priority alarms</div>
+        </div>
+        <div class="kpi-icon">⚡</div>
+      </div>
+      <div class="kpi-card kpi-blue">
+        <div>
+          <div class="kpi-label">Deployed Units</div>
+          <div class="kpi-value" id="kpi-teams">-</div>
+          <div class="kpi-subtext">Fire, medical & coast guard</div>
+        </div>
+        <div class="kpi-icon">🚒</div>
+      </div>
+      <div class="kpi-card kpi-emerald">
+        <div>
+          <div class="kpi-label">Relief Funds Raised</div>
+          <div class="kpi-value" id="kpi-funds">-</div>
+          <div class="kpi-subtext">For community rehabilitation</div>
+        </div>
+        <div class="kpi-icon">৳</div>
+      </div>
+    </div>
+
+    <!-- Highest Priority Crisis Spotlight -->
+    <div id="urgent-spotlight" style="display:none;" class="triage-card">
+      <div style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; color:#FCA5A5; font-weight:700; margin-bottom:0.5rem;">
+        ⚠️ LIVE HIGHEST-URGENCY QUEUE ITEM (PRIORITY TRIAGE)
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
+        <div>
+          <h2 style="font-size:1.6rem; font-weight:800; color:white;" id="spotlight-title">Loading incident...</h2>
+          <p style="color:#CBD5E1; margin-top:0.4rem; max-width:700px;" id="spotlight-desc"></p>
+          <div style="display:flex; gap:1rem; align-items:center; margin-top:1rem; font-size:0.85rem; color:#E2E8F0;">
+            <span id="spotlight-loc">📍 Location</span>
+            <span>•</span>
+            <span id="spotlight-injured">🤕 Casualties: 0</span>
+            <span>•</span>
+            <span id="spotlight-reports">📢 Confirmations: 0</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.8rem; color:#94A3B8;">CALCULATED PRIORITY SCORE</div>
+          <div style="font-size:2.5rem; font-family:var(--font-mono); font-weight:800; color:#EF4444;" id="spotlight-score">0.0</div>
+          <div style="margin-top:0.75rem;">
+            <a href="/dashboard.html" class="btn btn-danger btn-sm">Take Command &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Core Architecture Features (OOP System Highlights) -->
+    <div class="page-header" style="margin-top: 3rem;">
+      <div>
+        <h2 class="page-title">🛡️ Smart Emergency Response Capabilities</h2>
+        <p class="page-subtitle">Engineered with robust OOP patterns for rapid Bangladesh disaster management</p>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <div style="font-size: 2.2rem; margin-bottom: 0.75rem;">🔥</div>
+        <h3 class="card-title" style="margin-bottom: 0.5rem;">Crowdsourced Verification</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          Citizen reports start as <em>REPORTED</em>. Once 3+ independent citizens confirm the event,
+          the system automatically verifies it and awards the initial reporter <strong>+5 Trust Score</strong>.
+        </p>
+      </div>
+
+      <div class="card">
+        <div style="font-size: 2.2rem; margin-bottom: 0.75rem;">⚡</div>
+        <h3 class="card-title" style="margin-bottom: 0.5rem;">Automated 999 Escalation</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          Using the <strong>Observer Pattern</strong>, critical severity incidents (or score &ge; 200) instantly
+          trigger notifications and logging to the National Emergency Service (999) simulation log.
+        </p>
+      </div>
+
+      <div class="card">
+        <div style="font-size: 2.2rem; margin-bottom: 0.75rem;">🚒</div>
+        <h3 class="card-title" style="margin-bottom: 0.5rem;">Polymorphic Fleet Dispatch</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          The system evaluates team specialization via polymorphism: Fire Brigades for fires, Coast Guard for floods,
+          and Medical Units for trauma, assigning composed equipment dynamically.
+        </p>
+      </div>
+
+      <div class="card">
+        <div style="font-size: 2.2rem; margin-bottom: 0.75rem;">❤️</div>
+        <h3 class="card-title" style="margin-bottom: 0.5rem;">Post-Disaster Rehabilitation</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          Resolving an incident automatically opens a verified community relief drive with targeted BDT funding
+          and emergency ration packages for affected survivors.
+        </p>
+      </div>
+
+      <div class="card">
+        <div style="font-size: 2.2rem; margin-bottom: 0.75rem;">🎯</div>
+        <h3 class="card-title" style="margin-bottom: 0.5rem;">Citizen Trust Rating</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          Reporters hold trust scores from 0–100%. Reports from low-trust accounts (&lt;20%) are flagged as
+          unverified, while confirmed hoax / false alarms penalize reporters by <strong>-20 Trust</strong>.
+        </p>
+      </div>
+
+      <div class="card">
+        <div style="font-size: 2.2rem; margin-bottom: 0.75rem;">📊</div>
+        <h3 class="card-title" style="margin-bottom: 0.5rem;">Disaster Hotspot Intelligence</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+          Real-time incident clustering analyzes locations across Dhaka, Sylhet, Chittagong, and haor basins
+          to generate high-risk zone alerts and average response time metrics.
+        </p>
+      </div>
+    </div>
+
+    <!-- Active Feed Section -->
+    <div class="card" style="margin-top: 2rem;">
+      <div class="card-header">
+        <h3 class="card-title">🚨 Recent High-Urgency Incidents in Bangladesh</h3>
+        <a href="/dashboard.html" class="btn btn-outline btn-sm">View All Incidents &rarr;</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Type</th>
+              <th>Location</th>
+              <th>Severity</th>
+              <th>Priority Score</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="recent-incidents-body">
+            <tr><td colspan="7" style="text-align:center; color:var(--text-muted);">Loading incidents from triage queue...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer style="background:var(--primary); color:white; padding:3rem 1.5rem; margin-top:4rem; border-top:1px solid rgba(255,255,255,0.1);">
+    <div style="max-width:1300px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1.5rem;">
+      <div>
+        <div style="font-weight:800; font-size:1.15rem; display:flex; align-items:center; gap:0.5rem;">
+          <span>🛡️</span> RapidResQ — Rapid Disaster Response System
+        </div>
+        <p style="font-size:0.85rem; color:#94A3B8; margin-top:0.35rem;">
+          Bridging citizens, volunteers and national rescue units when every second counts
+        </p>
+      </div>
+      <div style="font-size:0.8rem; color:#94A3B8; text-align:right;">
+        Built with Java 21, Spring Boot 3.3.4, JPA & H2 DB<br>
+        Clean Architecture • Zero External JS Bundler Dependencies
+      </div>
+    </div>
+  </footer>
+
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      RapidResQ.renderNavbar('home');
+
+      // Load analytics KPIs
+      try {
+        const stats = await RapidResQ.api.getAnalytics();
+        document.getElementById('kpi-active').innerText = stats.activeIncidents || 0;
+        document.getElementById('kpi-escalations').innerText = stats.totalEscalations || 0;
+        document.getElementById('kpi-teams').innerText = `${stats.dispatchedTeams || 0} / ${stats.totalTeams || 0}`;
+        document.getElementById('kpi-funds').innerText = RapidResQ.formatCurrency(stats.totalDonationsRaised || 0);
+      } catch (e) {
+        console.warn('Analytics unavailable:', e);
+      }
+
+      // Load incident triage list
+      try {
+        const incidents = await RapidResQ.api.getIncidents();
+        const tbody = document.getElementById('recent-incidents-body');
+
+        if (!incidents || incidents.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No incidents currently reported.</td></tr>';
+          return;
+        }
+
+        // Spotlight highest priority active incident
+        const activeQueue = incidents.filter(i => i.status !== 'RESOLVED');
+        if (activeQueue.length > 0) {
+          const top = activeQueue[0];
+          document.getElementById('urgent-spotlight').style.display = 'block';
+          document.getElementById('spotlight-title').innerHTML = `${RapidResQ.getDisasterIcon(top.disasterType)} ${top.location} (${RapidResQ.getDisasterLabel(top.disasterType)})`;
+          document.getElementById('spotlight-desc').innerText = top.description;
+          document.getElementById('spotlight-loc').innerText = `📍 ${top.location}`;
+          document.getElementById('spotlight-injured').innerText = `🤕 Casualties: ${top.injuredCount}`;
+          document.getElementById('spotlight-reports').innerText = `📢 Reports: ${top.reportCount}`;
+          document.getElementById('spotlight-score').innerText = top.priority.toFixed(1);
+        }
+
+        // Populate table (first 5)
+        tbody.innerHTML = incidents.slice(0, 5).map(inc => `
+          <tr>
+            <td style="font-family:var(--font-mono); font-weight:700;">${inc.id}</td>
+            <td><span style="font-size:1.1rem; margin-right:4px;">${RapidResQ.getDisasterIcon(inc.disasterType)}</span> ${inc.disasterType}</td>
+            <td style="font-weight:600;">${inc.location}</td>
+            <td>${RapidResQ.formatSeverityBadge(inc.severity)}</td>
+            <td><span class="priority-score">${inc.priority.toFixed(1)}</span></td>
+            <td>${RapidResQ.formatStatusBadge(inc.status)}</td>
+            <td>
+              <a href="/dashboard.html" class="btn btn-outline btn-sm">Inspect</a>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error('Failed loading incidents:', e);
+      }
+    });
+  </script>
+</body>
+</html>

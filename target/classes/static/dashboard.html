@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Operations Dashboard | RapidResQ</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <div id="navbar-placeholder"></div>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">
+          <span>📡</span> Live Operations Command Grid
+        </h1>
+        <p class="page-subtitle">Real-time crisis monitoring, priority triage, crowd verification, and unit dispatch</p>
+      </div>
+      <div style="display:flex; gap:0.75rem;">
+        <button class="btn btn-outline btn-sm" onclick="loadDashboardData()">🔄 Refresh Feed</button>
+        <a href="/report-incident.html" class="btn btn-danger btn-sm">🚨 Report Emergency</a>
+      </div>
+    </div>
+
+    <!-- Live Operational KPIs -->
+    <div class="grid-4">
+      <div class="kpi-card kpi-red">
+        <div>
+          <div class="kpi-label">Active Emergencies</div>
+          <div class="kpi-value" id="stat-active">-</div>
+          <div class="kpi-subtext">Awaiting clearance</div>
+        </div>
+        <div class="kpi-icon">🚨</div>
+      </div>
+      <div class="kpi-card kpi-amber">
+        <div>
+          <div class="kpi-label">Crowd-Verified</div>
+          <div class="kpi-value" id="stat-verified">-</div>
+          <div class="kpi-subtext">3+ citizen confirmations</div>
+        </div>
+        <div class="kpi-icon">✅</div>
+      </div>
+      <div class="kpi-card kpi-blue">
+        <div>
+          <div class="kpi-label">Avg Response Time</div>
+          <div class="kpi-value" id="stat-response-time">-</div>
+          <div class="kpi-subtext">Target: &lt; 15 mins</div>
+        </div>
+        <div class="kpi-icon">⏱️</div>
+      </div>
+      <div class="kpi-card kpi-emerald">
+        <div>
+          <div class="kpi-label">Deployed Units</div>
+          <div class="kpi-value" id="stat-deployed">-</div>
+          <div class="kpi-subtext">Active field missions</div>
+        </div>
+        <div class="kpi-icon">🚒</div>
+      </div>
+    </div>
+
+    <!-- Highest Urgency Dispatch Spotlight (from PriorityQueue) -->
+    <div id="urgent-triage-container" style="display:none;" class="triage-card">
+      <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:#FCA5A5; font-weight:700; margin-bottom:0.5rem;">
+        ⚡ CRITICAL EMERGENCY • HIGHEST PRIORITY DISPATCH QUEUE
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1.5rem;">
+        <div style="flex:1; min-width:300px;">
+          <h2 style="font-size:1.75rem; font-weight:800; color:white;" id="triage-title">Loading...</h2>
+          <p style="color:#CBD5E1; margin-top:0.4rem; font-size:0.95rem;" id="triage-desc"></p>
+          <div style="display:flex; gap:1.25rem; align-items:center; margin-top:1rem; font-size:0.85rem; color:#E2E8F0; flex-wrap:wrap;">
+            <span id="triage-loc">📍 Location</span>
+            <span>•</span>
+            <span id="triage-injured">🤕 Casualties: 0</span>
+            <span>•</span>
+            <span id="triage-reports">📢 Reports: 0</span>
+            <span>•</span>
+            <span id="triage-team">🚒 Assigned: None</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.8rem; color:#94A3B8;">PRIORITY SCORE</div>
+          <div style="font-size:2.8rem; font-family:var(--font-mono); font-weight:800; color:#EF4444;" id="triage-score">0.0</div>
+          <div style="margin-top:0.75rem; display:flex; gap:0.5rem; justify-content:flex-end;">
+            <button class="btn btn-success btn-sm" id="btn-triage-dispatch" title="Admin & Response Team">Dispatch Best Unit</button>
+            <button class="btn btn-outline btn-sm" style="color:white; border-color:rgba(255,255,255,0.3);" id="btn-triage-confirm">Confirm (+1)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter & Search Controls -->
+    <div class="card" style="margin-bottom:1.5rem; padding:1rem 1.5rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;" id="type-filter-group">
+          <button class="btn btn-secondary btn-sm active-filter" data-type="ALL">All Types</button>
+          <button class="btn btn-secondary btn-sm" data-type="FIRE">🔥 Fire</button>
+          <button class="btn btn-secondary btn-sm" data-type="FLOOD">🌊 Flood</button>
+          <button class="btn btn-secondary btn-sm" data-type="ACCIDENT">🚗 Accident</button>
+          <button class="btn btn-secondary btn-sm" data-type="EARTHQUAKE">🌋 Earthquake</button>
+        </div>
+
+        <div style="display:flex; gap:0.75rem; align-items:center;">
+          <select id="status-filter" class="form-control form-select" style="width:160px; padding:0.4rem 0.75rem; font-size:0.85rem;">
+            <option value="ALL">All Statuses</option>
+            <option value="ACTIVE" selected>Active Only</option>
+            <option value="REPORTED">Reported</option>
+            <option value="VERIFIED">Verified</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="RESOLVED">Resolved</option>
+          </select>
+          <input type="text" id="search-input" class="form-control" placeholder="Search location or ID..." style="width:220px; padding:0.4rem 0.75rem; font-size:0.85rem;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid: Incidents Table & Hotspot Risk Zones -->
+    <div style="display:grid; grid-template-columns: 2.3fr 1fr; gap:1.5rem; align-items:start;">
+      <!-- Incidents Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">🚨 Active Incident Stream (<span id="incident-count">0</span>)</h3>
+          <span style="font-size:0.8rem; color:var(--text-muted);">Sorted by Priority Triage</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Disaster</th>
+                <th>Location</th>
+                <th>Severity</th>
+                <th>Priority</th>
+                <th>Reports</th>
+                <th>Status</th>
+                <th>Quick Actions</th>
+              </tr>
+            </thead>
+            <tbody id="incidents-table-body">
+              <tr><td colspan="8" style="text-align:center; color:var(--text-muted);">Loading live incident telemetry...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Hotspots & Risk Intelligence -->
+      <div style="display:flex; flex-direction:column; gap:1.5rem;">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">📍 Crisis Hotspots</h3>
+            <span class="beacon red"></span>
+          </div>
+          <div id="hotspot-list" style="display:flex; flex-direction:column; gap:0.75rem;">
+            <div style="color:var(--text-muted); font-size:0.85rem;">Analyzing geographic clusters...</div>
+          </div>
+        </div>
+
+        <div class="card" style="background:#F8FAFC;">
+          <h4 style="font-size:0.95rem; font-weight:700; color:var(--primary); margin-bottom:0.5rem;">💡 System Rules Quick Guide</h4>
+          <ul style="font-size:0.8rem; color:var(--text-muted); padding-left:1.2rem; line-height:1.6;">
+            <li><strong>Confirm (+1):</strong> 3 reports upgrade to <em>VERIFIED</em> (+5 Trust).</li>
+            <li><strong>Dispatch / Clear:</strong> Admin & Response Team operational commands.</li>
+            <li><strong>Resolve:</strong> Frees team and auto-spawns post-disaster rehabilitation fund.</li>
+            <li><strong>False Alarm:</strong> Admin-only; penalizes reporter -20 Trust score.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Incident Details Modal -->
+  <div id="incident-modal" class="modal-backdrop" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title">Incident Details</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- Injected via JS -->
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    let allIncidents = [];
+    let activeFilterType = 'ALL';
+    let isAdmin = RapidResQ.hasRole('ADMIN');
+    let isResponseTeam = RapidResQ.hasRole('RESPONSE_TEAM');
+    let canOperate = isAdmin || isResponseTeam;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      RapidResQ.renderNavbar('dashboard');
+      loadDashboardData();
+
+      // Type filter buttons
+      document.querySelectorAll('#type-filter-group button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('#type-filter-group button').forEach(b => {
+            b.classList.remove('btn-primary');
+            b.classList.add('btn-secondary');
+          });
+          btn.classList.remove('btn-secondary');
+          btn.classList.add('btn-primary');
+          activeFilterType = btn.getAttribute('data-type');
+          renderTable();
+        });
+      });
+
+      // Status & Search filters
+      document.getElementById('status-filter').addEventListener('change', renderTable);
+      document.getElementById('search-input').addEventListener('input', renderTable);
+    });
+
+    async function loadDashboardData() {
+      try {
+        // Analytics is auth-gated; fail soft so the public incident feed still renders
+        const [incidents, analytics] = await Promise.all([
+          RapidResQ.api.getIncidents(),
+          RapidResQ.api.getAnalytics().catch(() => null)
+        ]);
+
+        allIncidents = incidents || [];
+
+        // Update KPIs
+        if (analytics) {
+          document.getElementById('stat-active').innerText = analytics.activeIncidents || 0;
+          document.getElementById('stat-verified').innerText = analytics.verifiedIncidents || 0;
+          document.getElementById('stat-response-time').innerText = `${analytics.averageResponseTimeMinutes || 15}m`;
+          document.getElementById('stat-deployed').innerText = `${analytics.dispatchedTeams || 0} / ${analytics.totalTeams || 0}`;
+
+          // Render Hotspots
+          renderHotspots(analytics.hotspots || []);
+        }
+
+        renderTriageSpotlight();
+        renderTable();
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        RapidResQ.showToast('Failed to load dashboard telemetry.', 'error');
+      }
+    }
+
+    function renderTriageSpotlight() {
+      const activeQueue = allIncidents.filter(i => i.status !== 'RESOLVED');
+      const container = document.getElementById('urgent-triage-container');
+
+      if (activeQueue.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+
+      const top = activeQueue[0];
+      container.style.display = 'block';
+      document.getElementById('triage-title').innerHTML = `${RapidResQ.getDisasterIcon(top.disasterType)} ${top.location} (${RapidResQ.getDisasterLabel(top.disasterType)})`;
+      document.getElementById('triage-desc').innerText = top.description;
+      document.getElementById('triage-loc').innerText = `📍 ${top.location}`;
+      document.getElementById('triage-injured').innerText = `🤕 Casualties: ${top.injuredCount}`;
+      document.getElementById('triage-reports').innerText = `📢 Reports: ${top.reportCount} (${top.status})`;
+      document.getElementById('triage-team').innerText = `🚒 Unit: ${top.assignedTeamId || 'None Dispatched'}`;
+      document.getElementById('triage-score').innerText = top.priority.toFixed(1);
+
+      document.getElementById('btn-triage-dispatch').style.display = canOperate ? '' : 'none';
+      document.getElementById('btn-triage-dispatch').onclick = () => handleDispatch(top.id);
+      document.getElementById('btn-triage-confirm').onclick = () => handleConfirm(top.id);
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('incidents-table-body');
+      const statusFilter = document.getElementById('status-filter').value;
+      const search = document.getElementById('search-input').value.toLowerCase().trim();
+
+      let filtered = allIncidents.filter(inc => {
+        // Type filter
+        if (activeFilterType !== 'ALL' && inc.disasterType !== activeFilterType) return false;
+        
+        // Status filter
+        if (statusFilter === 'ACTIVE' && inc.status === 'RESOLVED') return false;
+        if (statusFilter !== 'ALL' && statusFilter !== 'ACTIVE' && inc.status !== statusFilter) return false;
+
+        // Search
+        if (search) {
+          const matchLoc = inc.location && inc.location.toLowerCase().includes(search);
+          const matchId = inc.id && inc.id.toLowerCase().includes(search);
+          const matchDesc = inc.description && inc.description.toLowerCase().includes(search);
+          if (!matchLoc && !matchId && !matchDesc) return false;
+        }
+
+        return true;
+      });
+
+      document.getElementById('incident-count').innerText = filtered.length;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:2rem;">No incidents matching current criteria.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(inc => `
+        <tr>
+          <td style="font-family:var(--font-mono); font-weight:700;">
+            <a href="javascript:void(0)" onclick="viewIncidentDetails('${inc.id}')" style="color:var(--primary); text-decoration:none;">${inc.id}</a>
+          </td>
+          <td>
+            <span style="font-size:1.1rem; margin-right:4px;">${RapidResQ.getDisasterIcon(inc.disasterType)}</span>
+            <strong>${inc.disasterType}</strong>
+          </td>
+          <td style="font-weight:600; max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${inc.location}">
+            ${inc.location}
+          </td>
+          <td>${RapidResQ.formatSeverityBadge(inc.severity)}</td>
+          <td><span class="priority-score">${inc.priority.toFixed(1)}</span></td>
+          <td>
+            <span style="font-weight:700;">${inc.reportCount}</span>
+            ${inc.status === 'REPORTED' ? `
+              <button class="btn btn-outline btn-sm" style="padding:1px 6px; font-size:0.7rem; margin-left:4px;" onclick="handleConfirm('${inc.id}')" title="Crowdsourced confirmation">+1</button>
+            ` : ''}
+          </td>
+          <td>${RapidResQ.formatStatusBadge(inc.status)}</td>
+          <td>
+            <div style="display:flex; gap:0.35rem;">
+              <button class="btn btn-outline btn-sm" style="padding:0.25rem 0.5rem;" onclick="viewIncidentDetails('${inc.id}')" title="View details">🔍</button>
+              ${isAdmin && inc.status !== 'RESOLVED' && !inc.assignedTeamId ? `
+                <button class="btn btn-primary btn-sm" style="padding:0.25rem 0.5rem;" onclick="handleDispatch('${inc.id}')" title="Dispatch team">🚒 Dispatch</button>
+              ` : ''}
+              ${isAdmin && inc.status !== 'RESOLVED' ? `
+                <button class="btn btn-success btn-sm" style="padding:0.25rem 0.5rem;" onclick="handleResolve('${inc.id}')" title="Mark resolved">✓ Clear</button>
+              ` : ''}
+              ${isResponseTeam && inc.status !== 'RESOLVED' && !inc.assignedTeamId ? `
+                <button class="btn btn-primary btn-sm" style="padding:0.25rem 0.5rem;" onclick="handleDispatch('${inc.id}')" title="Dispatch team (Response Team)">🚒 Dispatch</button>
+              ` : ''}
+              ${isResponseTeam && inc.status !== 'RESOLVED' && inc.assignedTeamId ? `
+                <button class="btn btn-success btn-sm" style="padding:0.25rem 0.5rem;" onclick="handleResolve('${inc.id}')" title="Mark resolved (Response Team)">✓ Clear</button>
+              ` : ''}
+              ${isAdmin ? `
+                <button class="btn btn-danger btn-sm" style="padding:0.25rem 0.5rem;" onclick="handleFalseAlarm('${inc.id}')" title="Mark false alarm (Admin only)">⚠️ Hoax</button>
+              ` : ''}
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderHotspots(hotspots) {
+      const container = document.getElementById('hotspot-list');
+      if (!hotspots || hotspots.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">No high density clusters identified.</div>';
+        return;
+      }
+
+      container.innerHTML = hotspots.slice(0, 4).map(h => `
+        <div style="border:1px solid var(--border-light); border-radius:var(--radius-md); padding:0.75rem; background:white;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="font-size:0.85rem; color:var(--primary);">${h.location}</strong>
+            <span class="badge ${h.alertLevel === 'HIGH RISK' ? 'badge-critical' : 'badge-moderate'}" style="font-size:0.65rem;">${h.alertLevel}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:0.35rem; font-size:0.75rem; color:var(--text-muted);">
+            <span>Incidents: <strong>${h.count}</strong></span>
+            <span>Casualties: <strong>${h.totalInjured}</strong></span>
+            <span>Type: <strong>${h.primaryType}</strong></span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // --- Actions ---
+
+    async function handleConfirm(id) {
+      try {
+        const updated = await RapidResQ.api.confirmIncident(id);
+        RapidResQ.showToast(`Incident ${id} confirmed! (Total reports: ${updated.reportCount})`, 'success');
+        if (updated.status === 'VERIFIED') {
+          RapidResQ.showToast(`🎉 Incident ${id} has reached 3+ reports and is now VERIFIED! Reporter awarded +5 Trust.`, 'success');
+        }
+        loadDashboardData();
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Failed to confirm incident.', 'error');
+      }
+    }
+
+    async function handleDispatch(id) {
+      try {
+        const res = await RapidResQ.api.assignTeam(id);
+        RapidResQ.showToast(`Unit ${res.team.name} successfully deployed to incident ${id}!`, 'success');
+        loadDashboardData();
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Team dispatch failed.', 'error');
+      }
+    }
+
+    async function handleResolve(id) {
+      if (!confirm(`Are you sure you want to mark incident ${id} as RESOLVED? This will release assigned teams and launch a post-disaster community relief drive.`)) return;
+
+      try {
+        await RapidResQ.api.resolveIncident(id);
+        RapidResQ.showToast(`Incident ${id} marked RESOLVED! Post-disaster rehabilitation drive launched.`, 'success');
+        loadDashboardData();
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Resolution failed.', 'error');
+      }
+    }
+
+    async function handleFalseAlarm(id) {
+      if (!confirm(`Mark incident ${id} as FALSE ALARM / HOAX? The reporter will be penalized -20 Trust score.`)) return;
+
+      try {
+        await RapidResQ.api.markFalseAlarm(id);
+        RapidResQ.showToast(`Incident ${id} marked as FALSE ALARM. Reporter penalized -20 Trust.`, 'warning');
+        loadDashboardData();
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Action failed.', 'error');
+      }
+    }
+
+    function viewIncidentDetails(id) {
+      const inc = allIncidents.find(i => i.id === id);
+      if (!inc) return;
+
+      document.getElementById('modal-title').innerHTML = `${RapidResQ.getDisasterIcon(inc.disasterType)} ${inc.id} • ${inc.location}`;
+      
+      let polymorphicDetails = '';
+      if (inc.disasterType === 'FIRE') {
+        polymorphicDetails = `
+          <div><strong>Alarm Level:</strong> Level ${inc.fireAlarmLevel || 1}</div>
+          <div><strong>Chemical / Gas Hazard:</strong> ${inc.chemicalOrGasHazard ? '⚠️ YES' : 'None reported'}</div>
+        `;
+      } else if (inc.disasterType === 'FLOOD') {
+        polymorphicDetails = `
+          <div><strong>Water Depth:</strong> ${inc.waterLevelMeters || 0} meters</div>
+          <div><strong>Stranded People:</strong> ${inc.strandedPeopleCount || 0} persons</div>
+        `;
+      } else if (inc.disasterType === 'ACCIDENT') {
+        polymorphicDetails = `
+          <div><strong>Vehicles Involved:</strong> ${inc.vehiclesInvolved || 1}</div>
+          <div><strong>Highway / Rail Corridor:</strong> ${inc.highwayOrTrain ? 'YES' : 'No'}</div>
+        `;
+      } else if (inc.disasterType === 'EARTHQUAKE') {
+        polymorphicDetails = `
+          <div><strong>Richter Magnitude:</strong> ${inc.magnitudeRichter || 0} ML</div>
+          <div><strong>Collapsed Structures:</strong> ${inc.collapsedBuildingsCount || 0}</div>
+        `;
+      }
+
+      document.getElementById('modal-body').innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:1rem;">
+          <div style="background:var(--bg-card-subtle); padding:1rem; border-radius:var(--radius-md);">
+            <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Crisis Telemetry</div>
+            <div style="font-size:1.1rem; font-weight:700; color:var(--primary); margin-top:0.25rem;">${inc.location}</div>
+            <div style="margin-top:0.35rem; color:var(--text-main); font-size:0.9rem;">${inc.description}</div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; font-size:0.85rem;">
+            <div><strong>Severity:</strong> ${RapidResQ.formatSeverityBadge(inc.severity)}</div>
+            <div><strong>Priority Score:</strong> <span class="priority-score">${inc.priority.toFixed(1)}</span></div>
+            <div><strong>Status:</strong> ${RapidResQ.formatStatusBadge(inc.status)}</div>
+            <div><strong>Casualties / Injured:</strong> ${inc.injuredCount}</div>
+            <div><strong>Reporter:</strong> ${inc.reporterUsername} (Trust: ${inc.reporterTrustScore}%)</div>
+            <div><strong>Citizen Confirmations:</strong> ${inc.reportCount} reports</div>
+            <div><strong>Assigned Team:</strong> ${inc.assignedTeamId ? `<span class="badge badge-status-progress">${inc.assignedTeamId}</span>` : 'None'}</div>
+            <div><strong>Reported Time:</strong> ${RapidResQ.formatDate(inc.timestamp)}</div>
+          </div>
+
+          <div style="border-top:1px solid var(--border-light); padding-top:0.75rem; font-size:0.85rem; display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+            ${polymorphicDetails}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('modal-footer').innerHTML = `
+        ${isAdmin && inc.status === 'REPORTED' ? `
+          <button class="btn btn-primary btn-sm" onclick="openVerifyModal('${inc.id}')">🔬 Verify Report</button>
+        ` : ''}
+        ${isAdmin && inc.status !== 'RESOLVED' && !inc.assignedTeamId ? `
+          <button class="btn btn-primary btn-sm" onclick="handleDispatch('${inc.id}'); closeModal();">🚒 Dispatch Team</button>
+        ` : ''}
+        ${isAdmin && inc.status !== 'RESOLVED' ? `
+          <button class="btn btn-success btn-sm" onclick="handleResolve('${inc.id}'); closeModal();">✓ Mark Resolved</button>
+        ` : ''}
+        ${isResponseTeam && inc.status !== 'RESOLVED' && !inc.assignedTeamId ? `
+          <button class="btn btn-primary btn-sm" onclick="handleDispatch('${inc.id}'); closeModal();">🚒 Dispatch Team</button>
+        ` : ''}
+        ${isResponseTeam && inc.status !== 'RESOLVED' && inc.assignedTeamId ? `
+          <button class="btn btn-success btn-sm" onclick="handleResolve('${inc.id}'); closeModal();">✓ Mark Resolved</button>
+        ` : ''}
+        <button class="btn btn-outline btn-sm" onclick="closeModal()">Close</button>
+      `;
+
+      document.getElementById('incident-modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('incident-modal').style.display = 'none';
+    }
+
+    // --- Admin verification methods modal ---
+    const VERIFY_METHODS = [
+      ['GPS_PINGS', '🛰️ GPS Pings', 'Real-time coordinate logs'],
+      ['EMERGENCY_CONTACTS', '📞 Emergency Contacts', 'Call listed owners'],
+      ['DOUBLE_CALLING', '☎️ Double-Calling', 'Re-dial the reporting number'],
+      ['RADAR_AUDITS', '🌦️ Radar Audits', 'Weather feeds vs reported storms'],
+      ['SENSOR_MATCHED', '🎧 Sensor Matched', 'Acoustic signature match'],
+      ['THERMAL_SCANS', '🛰️🔥 Thermal Scans', 'Satellite heat/fire plumes'],
+      ['MULTI_WITNESSING', '👥 Multi-Witnessing', 'Independent caller match'],
+      ['USER_PROMPTS', '📱 User Prompts', 'Device abort-screen taps'],
+      ['DRONE_SWEEPS', '🚁 Drone Sweeps', 'UAV rapid visual check'],
+      ['METHANE_LAYOUT', '📋 M/ETHANE Layout', 'Acronym checklist grading']
+    ];
+
+    function openVerifyModal(incidentId) {
+      const body = document.getElementById('modal-body');
+      body.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+          <div style="font-size:0.9rem; color:var(--text-muted);">Run structured verification checks against <strong style="font-family:var(--font-mono);">${incidentId}</strong>. Passed checks accumulate weight — total weight ≥ 3 auto-verifies the incident.</div>
+          <select id="verify-method-select" class="form-control form-select">
+            ${VERIFY_METHODS.map(([v, label, desc]) => `<option value="${v}">${label} — ${desc}</option>`).join('')}
+          </select>
+          <input type="text" id="verify-notes-input" class="form-control" placeholder="Check findings / notes...">
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn btn-success btn-sm" onclick="submitCheck('${incidentId}', true)">✔ Record PASS</button>
+            <button class="btn btn-danger btn-sm" onclick="submitCheck('${incidentId}', false)">⚠ Record FLAG</button>
+          </div>
+          <div id="inline-verify-result" style="font-size:0.85rem;"></div>
+        </div>
+      `;
+      document.getElementById('modal-footer').innerHTML = '<button class="btn btn-outline btn-sm" onclick="closeModal(); loadDashboardData();">Done</button>';
+    }
+
+    async function submitCheck(incidentId, passed) {
+      const method = document.getElementById('verify-method-select').value;
+      const notes = document.getElementById('verify-notes-input').value.trim();
+      try {
+        const result = await RapidResQ.api.runVerificationCheck(incidentId, method, passed, notes);
+        document.getElementById('inline-verify-result').innerHTML = passed
+          ? `<span style="color:var(--emerald); font-weight:700;">✔ Check PASSED</span> ${result.autoVerified ? '— <strong style="color:var(--emerald);">INCIDENT AUTO-VERIFIED (reporter +5 Trust)</strong>' : '(weight accumulating toward verification)'} `
+          : '<span style="color:var(--accent-red); font-weight:700;">⚠ Check FLAGGED and recorded</span>';
+      } catch (err) {
+        document.getElementById('inline-verify-result').innerHTML = `<span style="color:var(--accent-red);">${err.message}</span>`;
+      }
+    }
+  </script>
+</body>
+</html>

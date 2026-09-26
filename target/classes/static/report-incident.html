@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Emergency | RapidResQ</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <!-- Global Navbar -->
+  <div id="navbar-placeholder"></div>
+
+  <main class="main-content">
+    <div style="max-width: 860px; margin: 0 auto;">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" style="color:var(--accent-red);">
+            <span>🚨</span> Lodging Emergency Incident
+          </h1>
+          <p class="page-subtitle">Immediate transmission to national disaster coordination and emergency triage grid</p>
+        </div>
+        <a href="/dashboard.html" class="btn btn-outline btn-sm">&larr; Back to Dashboard</a>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1.75rem; align-items:start;">
+        <!-- Form Container -->
+        <div class="card" style="padding:2rem;">
+          <form id="incident-form">
+            <!-- 1. Disaster Type Selector -->
+            <label class="form-label" style="font-size:0.95rem; margin-bottom:0.75rem;">1. Select Disaster Category</label>
+            <div class="type-grid">
+              <label class="type-card-label">
+                <input type="radio" name="disasterType" value="FIRE" class="type-card-input" checked>
+                <div class="type-card">
+                  <div class="type-icon">🔥</div>
+                  <div class="type-name">Fire</div>
+                </div>
+              </label>
+
+              <label class="type-card-label">
+                <input type="radio" name="disasterType" value="FLOOD" class="type-card-input">
+                <div class="type-card">
+                  <div class="type-icon">🌊</div>
+                  <div class="type-name">Flood</div>
+                </div>
+              </label>
+
+              <label class="type-card-label">
+                <input type="radio" name="disasterType" value="ACCIDENT" class="type-card-input">
+                <div class="type-card">
+                  <div class="type-icon">🚗</div>
+                  <div class="type-name">Accident</div>
+                </div>
+              </label>
+
+              <label class="type-card-label">
+                <input type="radio" name="disasterType" value="EARTHQUAKE" class="type-card-input">
+                <div class="type-card">
+                  <div class="type-icon">🌋</div>
+                  <div class="type-name">Quake</div>
+                </div>
+              </label>
+            </div>
+
+            <!-- 2. Location & Bangladesh Quick Selector -->
+            <div class="form-group">
+              <label class="form-label" for="location">2. Incident Location / Sector</label>
+              <input type="text" id="location" class="form-control" placeholder="e.g. Korail Slum, Mohakhali, Dhaka" required>
+              <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-top:0.4rem;">
+                <span style="font-size:0.75rem; color:var(--text-muted); align-self:center;">Quick Fill:</span>
+                <button type="button" class="btn btn-outline btn-sm" style="font-size:0.7rem; padding:1px 6px;" onclick="setLocation('Mohakhali Wireless Gate, Dhaka')">Mohakhali, Dhaka</button>
+                <button type="button" class="btn btn-outline btn-sm" style="font-size:0.7rem; padding:1px 6px;" onclick="setLocation('Dhaka-Chittagong Highway, Feni')">Feni Highway</button>
+                <button type="button" class="btn btn-outline btn-sm" style="font-size:0.7rem; padding:1px 6px;" onclick="setLocation('Sunamganj Sadar Haor Basin')">Sunamganj Haor</button>
+                <button type="button" class="btn btn-outline btn-sm" style="font-size:0.7rem; padding:1px 6px;" onclick="setLocation('Sitakunda Industrial Zone, Ctg')">Sitakunda</button>
+              </div>
+            </div>
+
+            <!-- 3. Severity & Injured Grid -->
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+              <div class="form-group">
+                <label class="form-label" for="severity">3. Threat Severity Level</label>
+                <select id="severity" class="form-control form-select" required>
+                  <option value="CRITICAL" selected>🚨 CRITICAL (Imminent Loss of Life)</option>
+                  <option value="HIGH">⚠️ HIGH (Substantial Threat)</option>
+                  <option value="MODERATE">ℹ️ MODERATE (Localized Emergency)</option>
+                  <option value="LOW">🟢 LOW (Minor Alert)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="injuredCount">Casualties / Injured Count</label>
+                <input type="number" id="injuredCount" class="form-control" value="0" min="0" required>
+              </div>
+            </div>
+
+            <!-- 4. Polymorphic Dynamic Fields Container -->
+            <div style="background:var(--bg-card-subtle); border:1px solid var(--border-light); border-radius:var(--radius-md); padding:1.25rem; margin-bottom:1.25rem;">
+              <div style="font-size:0.85rem; font-weight:700; color:var(--primary); margin-bottom:0.75rem;" id="dynamic-fields-header">
+                🔥 Fire Outbreak Parameters
+              </div>
+
+              <!-- FIRE fields -->
+              <div id="fields-fire" class="dynamic-group">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" for="fireAlarmLevel">Fire Alarm Level (1 - 5)</label>
+                    <select id="fireAlarmLevel" class="form-control form-select">
+                      <option value="1">Level 1 (Single structure)</option>
+                      <option value="2">Level 2 (Multiple units)</option>
+                      <option value="3">Level 3 (Major complex)</option>
+                      <option value="4" selected>Level 4 (Severe multi-block)</option>
+                      <option value="5">Level 5 (Catastrophic general alarm)</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:center;">
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:600; font-size:0.85rem; margin-top:1.2rem;">
+                      <input type="checkbox" id="chemicalOrGasHazard" checked style="width:18px; height:18px;">
+                      <span>⚠️ Chemical or Gas Hazard</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- FLOOD fields -->
+              <div id="fields-flood" class="dynamic-group" style="display:none;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" for="waterLevelMeters">Water Depth (Meters)</label>
+                    <input type="number" id="waterLevelMeters" class="form-control" value="2.5" step="0.1" min="0">
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" for="strandedPeopleCount">Stranded Citizens Count</label>
+                    <input type="number" id="strandedPeopleCount" class="form-control" value="25" min="0">
+                  </div>
+                </div>
+              </div>
+
+              <!-- ACCIDENT fields -->
+              <div id="fields-accident" class="dynamic-group" style="display:none;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" for="vehiclesInvolved">Vehicles Involved</label>
+                    <input type="number" id="vehiclesInvolved" class="form-control" value="2" min="1">
+                  </div>
+                  <div class="form-group" style="margin-bottom:0; display:flex; flex-direction:column; justify-content:center;">
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; font-weight:600; font-size:0.85rem; margin-top:1.2rem;">
+                      <input type="checkbox" id="highwayOrTrain" checked style="width:18px; height:18px;">
+                      <span>🚆 Highway or Train Collision</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- EARTHQUAKE fields -->
+              <div id="fields-earthquake" class="dynamic-group" style="display:none;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" for="magnitudeRichter">Richter Magnitude (ML)</label>
+                    <input type="number" id="magnitudeRichter" class="form-control" value="5.8" step="0.1" min="1" max="10">
+                  </div>
+                  <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" for="collapsedBuildingsCount">Collapsed Structures</label>
+                    <input type="number" id="collapsedBuildingsCount" class="form-control" value="1" min="0">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Description Textarea -->
+            <div class="form-group">
+              <label class="form-label" for="description">5. Detailed Situation Briefing</label>
+              <textarea id="description" class="form-control" placeholder="Describe the ongoing crisis, hazards, affected landmarks, and trapped persons..." required>Rapid fire spreading across wooden structures near local marketplace.</textarea>
+            </div>
+
+            <button type="submit" class="btn btn-danger btn-lg" style="width:100%; font-size:1.05rem;">
+              Transmit Immediate Emergency Alert 🚨
+            </button>
+          </form>
+        </div>
+
+        <!-- Live Urgency Score Preview Sidecard -->
+        <div style="display:flex; flex-direction:column; gap:1.25rem;">
+          <div class="card" style="text-align:center; padding:1.5rem; border:2px solid var(--border-light);">
+            <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; font-weight:700; color:var(--text-muted);">
+              Triage Priority Simulator
+            </div>
+            <div style="font-size:3rem; font-family:var(--font-mono); font-weight:800; color:var(--accent-red); margin:0.5rem 0;" id="simulated-score">
+              0.0
+            </div>
+            <div id="escalation-badge" style="display:inline-block; font-size:0.75rem; font-weight:700; padding:0.25rem 0.65rem; border-radius:999px; background:var(--accent-red-soft); color:var(--accent-red); margin-bottom:0.75rem;">
+              🚨 Will Trigger 999 Escalation
+            </div>
+            <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.4;">
+              Calculated dynamically using the system's polymorphic priority algorithm based on disaster type, casualties, and threat level.
+            </p>
+          </div>
+
+          <div class="card" style="font-size:0.8rem; color:var(--text-muted); line-height:1.6;">
+            <strong style="color:var(--primary); font-size:0.85rem; display:block; margin-bottom:0.35rem;">🛡️ Trust & Verification</strong>
+            Your report will be lodged with your account's Trust Rating. Once verified by 3 citizens, you earn <strong>+5 Trust points</strong>! False alarms incur <strong>-20 points</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      RapidResQ.renderNavbar('report');
+
+      // Disaster type switch listeners
+      document.querySelectorAll('input[name="disasterType"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+          updateDynamicFields();
+          calculateSimulatedPriority();
+        });
+      });
+
+      // Recalculate priority on any input change
+      const watchInputs = ['severity', 'injuredCount', 'fireAlarmLevel', 'chemicalOrGasHazard', 'waterLevelMeters', 'strandedPeopleCount', 'vehiclesInvolved', 'highwayOrTrain', 'magnitudeRichter', 'collapsedBuildingsCount'];
+      watchInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', calculateSimulatedPriority);
+          el.addEventListener('change', calculateSimulatedPriority);
+        }
+      });
+
+      // Form submission
+      document.getElementById('incident-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const disasterType = document.querySelector('input[name="disasterType"]:checked').value;
+        const location = document.getElementById('location').value.trim();
+        const severity = document.getElementById('severity').value;
+        const injuredCount = parseInt(document.getElementById('injuredCount').value) || 0;
+        const description = document.getElementById('description').value.trim();
+
+        const payload = {
+          disasterType,
+          location,
+          severity,
+          injuredCount,
+          description,
+          fireAlarmLevel: parseInt(document.getElementById('fireAlarmLevel').value) || 1,
+          chemicalOrGasHazard: document.getElementById('chemicalOrGasHazard').checked,
+          waterLevelMeters: parseFloat(document.getElementById('waterLevelMeters').value) || 0,
+          strandedPeopleCount: parseInt(document.getElementById('strandedPeopleCount').value) || 0,
+          vehiclesInvolved: parseInt(document.getElementById('vehiclesInvolved').value) || 1,
+          highwayOrTrain: document.getElementById('highwayOrTrain').checked,
+          magnitudeRichter: parseFloat(document.getElementById('magnitudeRichter').value) || 0,
+          collapsedBuildingsCount: parseInt(document.getElementById('collapsedBuildingsCount').value) || 0
+        };
+
+        try {
+          const result = await RapidResQ.api.reportIncident(payload);
+          RapidResQ.showToast(`🚨 Emergency ${result.id} successfully lodged with Priority Score ${result.priority.toFixed(1)}!`, 'success');
+          
+          if (result.priority >= 200 || result.severity === 'CRITICAL') {
+            RapidResQ.showToast('🚨 Triggered simulated escalation to National Emergency Service (999)!', 'warning');
+          }
+
+          setTimeout(() => window.location.href = '/dashboard.html', 1200);
+        } catch (err) {
+          RapidResQ.showToast(err.message || 'Failed to submit incident report.', 'error');
+        }
+      });
+
+      updateDynamicFields();
+      calculateSimulatedPriority();
+    });
+
+    function setLocation(loc) {
+      document.getElementById('location').value = loc;
+    }
+
+    function updateDynamicFields() {
+      const type = document.querySelector('input[name="disasterType"]:checked').value;
+      const header = document.getElementById('dynamic-fields-header');
+
+      document.querySelectorAll('.dynamic-group').forEach(el => el.style.display = 'none');
+
+      if (type === 'FIRE') {
+        document.getElementById('fields-fire').style.display = 'block';
+        header.innerHTML = '🔥 Fire Outbreak Specifics';
+      } else if (type === 'FLOOD') {
+        document.getElementById('fields-flood').style.display = 'block';
+        header.innerHTML = '🌊 Water Flood & Waterlogging Specifics';
+      } else if (type === 'ACCIDENT') {
+        document.getElementById('fields-accident').style.display = 'block';
+        header.innerHTML = '🚗 Transport Collision Specifics';
+      } else if (type === 'EARTHQUAKE') {
+        document.getElementById('fields-earthquake').style.display = 'block';
+        header.innerHTML = '🌋 Seismic & Structural Hazard Specifics';
+      }
+    }
+
+    function calculateSimulatedPriority() {
+      const type = document.querySelector('input[name="disasterType"]:checked').value;
+      const severity = document.getElementById('severity').value;
+      const injured = parseInt(document.getElementById('injuredCount').value) || 0;
+
+      let baseWeight = 20.0;
+      if (severity === 'CRITICAL') baseWeight = 100.0;
+      else if (severity === 'HIGH') baseWeight = 70.0;
+      else if (severity === 'MODERATE') baseWeight = 40.0;
+
+      let score = baseWeight + (injured * 15.0);
+
+      if (type === 'FIRE') {
+        const level = parseInt(document.getElementById('fireAlarmLevel').value) || 1;
+        const chem = document.getElementById('chemicalOrGasHazard').checked;
+        score += (level * 12.0) + (chem ? 35.0 : 0.0);
+      } else if (type === 'FLOOD') {
+        const depth = parseFloat(document.getElementById('waterLevelMeters').value) || 0;
+        const stranded = parseInt(document.getElementById('strandedPeopleCount').value) || 0;
+        score += (depth * 10.0) + (stranded * 3.0);
+      } else if (type === 'ACCIDENT') {
+        const vehicles = parseInt(document.getElementById('vehiclesInvolved').value) || 1;
+        const hw = document.getElementById('highwayOrTrain').checked;
+        score += (vehicles * 8.0) + (hw ? 25.0 : 0.0);
+      } else if (type === 'EARTHQUAKE') {
+        const mag = parseFloat(document.getElementById('magnitudeRichter').value) || 0;
+        const collapsed = parseInt(document.getElementById('collapsedBuildingsCount').value) || 0;
+        score += (mag * 14.0) + (collapsed * 28.0);
+      }
+
+      document.getElementById('simulated-score').innerText = score.toFixed(1);
+
+      const escBadge = document.getElementById('escalation-badge');
+      if (score >= 200 || severity === 'CRITICAL') {
+        escBadge.style.display = 'inline-block';
+        escBadge.className = 'badge badge-critical';
+        escBadge.innerText = '🚨 Will Trigger 999 Escalation';
+      } else {
+        escBadge.style.display = 'inline-block';
+        escBadge.className = 'badge badge-moderate';
+        escBadge.innerText = 'Standard Sector Triage';
+      }
+    }
+  </script>
+</body>
+</html>

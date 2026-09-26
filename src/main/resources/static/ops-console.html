@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volunteer & Team Ops | RapidResQ</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title" style="color:#0E7490;"><span>🛰️</span> Volunteer & Team Operations</h1>
+        <p class="page-subtitle">Volunteer registry by team type, structured incident verification, unit management & signal dispatch</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="loadOps()">🔄 Refresh</button>
+    </div>
+
+    <!-- Broadcast bar -->
+    <div class="card" style="margin-bottom:1.5rem; padding:1rem 1.5rem;">
+      <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+        <strong style="font-size:0.9rem;">📢 Broadcast to volunteers:</strong>
+        <input type="text" id="broadcast-msg" class="form-control" placeholder="Emergency broadcast message to all volunteer units..." style="flex:1; min-width:260px;">
+        <button class="btn btn-danger btn-sm" onclick="sendBroadcast()">Send Broadcast</button>
+      </div>
+    </div>
+
+    <!-- Volunteer Registry grouped by team type -->
+    <div class="card" style="margin-bottom:2rem;">
+      <div class="card-header">
+        <h3 class="card-title">🤝 Volunteer Registry by Team Type</h3>
+        <span style="font-size:0.8rem; color:var(--text-muted);">Units & individual volunteers per specialization</span>
+      </div>
+      <div id="volunteer-registry" style="padding:0 0 1rem;">
+        <div style="color:var(--text-muted); padding:1rem;">Loading volunteer registry...</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:2rem;">
+      <!-- Incident verification -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">🔬 Structured Incident Verification</h3>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Weight ≥ 3 auto-verifies</span>
+        </div>
+        <div style="padding:0.5rem 1.25rem 1.25rem;">
+          <div class="form-group">
+            <label class="form-label">Incident ID</label>
+            <input type="text" id="verify-incident" class="form-control" placeholder="e.g. INC-101">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Verification Method</label>
+            <select id="verify-method" class="form-control form-select">
+              <option value="GPS_PINGS">🛰️ GPS Pings — real-time coordinate logs (w2)</option>
+              <option value="EMERGENCY_CONTACTS">📞 Emergency Contacts — call listed owners (w2)</option>
+              <option value="DOUBLE_CALLING">☎️ Double-Calling — re-dial reporter (w1)</option>
+              <option value="RADAR_AUDITS">🌦️ Radar Audits — weather vs reported storms (w2)</option>
+              <option value="SENSOR_MATCHED">🎧 Sensor Matched — acoustic signatures (w2)</option>
+              <option value="THERMAL_SCANS">🛰️🔥 Thermal Scans — satellite heat plumes (w3)</option>
+              <option value="MULTI_WITNESSING">👥 Multi-Witnessing — independent calls (w2)</option>
+              <option value="USER_PROMPTS">📱 User Prompts — device abort taps (w1)</option>
+              <option value="DRONE_SWEEPS">🚁 Drone Sweeps — UAV visual check (w3)</option>
+              <option value="METHANE_LAYOUT">📋 M/ETHANE checklist grading (w2)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Check Notes</label>
+            <input type="text" id="verify-notes" class="form-control" placeholder="What did the check find?">
+          </div>
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn btn-success btn-sm" onclick="runCheck(true)">✔ Record PASS</button>
+            <button class="btn btn-danger btn-sm" onclick="runCheck(false)">⚠ Record FLAG</button>
+          </div>
+          <div id="verify-result" style="margin-top:0.75rem; font-size:0.85rem;"></div>
+        </div>
+      </div>
+
+      <!-- Team ops quick actions -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">🚒 Unit Management Quick Actions</h3>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Mission lock, demobilize, GPS</span>
+        </div>
+        <div style="padding:0.5rem 1.25rem 1.25rem;">
+          <div class="form-group">
+            <label class="form-label">Team / Unit ID</label>
+            <input type="text" id="ops-team-id" class="form-control" placeholder="e.g. TEAM-VOL01">
+          </div>
+          <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" onclick="teamAction('mission-lock', {}, 'Mission lock toggled')">🔒 Mission Lock</button>
+            <button class="btn btn-danger btn-sm" onclick="teamAction('demobilize', {}, 'Unit demobilized')">🛑 Demobilize</button>
+            <button class="btn btn-outline btn-sm" onclick="updatePosition()">📍 Update GPS</button>
+            <button class="btn btn-primary btn-sm" onclick="sendDeploymentSignal()">✅ Confirm Deployment Signal</button>
+          </div>
+          <div class="form-group" style="margin-top:0.75rem;">
+            <label class="form-label">Skills / Certifications (comma-separated)</label>
+            <div style="display:flex; gap:0.4rem;">
+              <input type="text" id="ops-skills" class="form-control" placeholder="swift-water, first-aid, drone-op">
+              <button class="btn btn-outline btn-sm" onclick="saveSkills()">Save</button>
+            </div>
+          </div>
+          <div id="ops-result" style="font-size:0.85rem; margin-top:0.5rem;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Signal history -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">📡 Signal Dispatch History</h3>
+        <span style="font-size:0.8rem; color:var(--text-muted);">Every signal sent to volunteer units</span>
+      </div>
+      <div class="table-responsive" style="max-height:360px; overflow-y:auto;">
+        <table class="table">
+          <thead>
+            <tr><th>Signal</th><th>Type</th><th>Target</th><th>Message</th><th>Status</th><th>Sent</th></tr>
+          </thead>
+          <tbody id="signals-table">
+            <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      RapidResQ.renderNavbar('ops');
+      if (!RapidResQ.requireAdmin()) return;
+      loadOps();
+    });
+
+    async function loadOps() {
+      try {
+        const [registry, signals] = await Promise.all([
+          RapidResQ.api.getVolunteerRegistry(),
+          apiFetch('/ops/volunteers/signals')
+        ]);
+        renderRegistry(registry);
+        renderSignals(signals || []);
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Failed to load operations data.', 'error');
+      }
+    }
+
+    function apiFetchMock() {}
+    async function apiFetch(endpoint) {
+      const token = RapidResQ.getToken();
+      const res = await fetch('/api' + endpoint, {
+        headers: token ? { 'Authorization': token.startsWith('Bearer ') ? token : 'Bearer ' + token } : {}
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data && data.message || res.statusText);
+      return data;
+    }
+
+    function renderRegistry(registry) {
+      const container = document.getElementById('volunteer-registry');
+      const unitsByType = registry.unitsByType || {};
+      const accountsByType = registry.accountsByType || {};
+
+      let html = '';
+      for (const [type, units] of Object.entries(unitsByType)) {
+        const accounts = accountsByType[type] || [];
+        if (units.length === 0 && accounts.length === 0) continue;
+        const label = units[0] ? units[0].teamTypeLabel : type;
+
+        html += `
+          <div style="padding:0.9rem 1.25rem; border-top:1px solid var(--border-light);">
+            <div style="font-weight:800; color:var(--primary); font-size:0.95rem; margin-bottom:0.5rem;">${label}</div>
+            ${units.map(u => `
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem; background:var(--bg-card-subtle); border-radius:var(--radius-md); padding:0.6rem 0.9rem; margin-bottom:0.4rem;">
+                <div>
+                  <strong>${u.name}</strong> <span style="font-family:var(--font-mono); font-size:0.72rem; color:var(--text-dim);">${u.teamId}</span>
+                  <div style="font-size:0.75rem; color:var(--text-muted);">👤 Leader: ${u.leader || '—'} • 👥 ${u.memberCount} members • 📍 ${u.district} • 🎯 ${u.skillTags || 'no skills tagged'}</div>
+                </div>
+                <div style="display:flex; gap:0.4rem; align-items:center;">
+                  <span class="badge ${u.status === 'AVAILABLE' ? 'badge-status-verified' : 'badge-status-progress'}" style="font-size:0.65rem;">${u.status}${u.missionLocked ? ' 🔒' : ''}</span>
+                  <button class="btn btn-success btn-sm" style="padding:0.2rem 0.6rem; font-size:0.72rem;" onclick="signalTeam('${u.teamId}')">✅ Confirm Deploy</button>
+                  <button class="btn btn-outline btn-sm" style="padding:0.2rem 0.6rem; font-size:0.72rem;" onclick="signalTeam('${u.teamId}', 'STANDBY')">🟡 Standby</button>
+                  <button class="btn btn-outline btn-sm" style="padding:0.2rem 0.6rem; font-size:0.72rem;" onclick="signalTeam('${u.teamId}', 'STAND_DOWN')">🔵 Stand Down</button>
+                </div>
+              </div>
+            `).join('')}
+            ${accounts.map(a => `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:0.35rem 0.9rem; font-size:0.82rem; color:var(--text-muted);">
+                <span>👤 <strong style="color:var(--text-main);">@${a.username}</strong> (Trust: ${a.trustScore}%) ${a.active ? '' : '⚠️ deactivated'}</span>
+                <button class="btn btn-outline btn-sm" style="padding:0.15rem 0.55rem; font-size:0.7rem;" onclick="signalUser('${a.username}')">Send Signal</button>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+      container.innerHTML = html || '<div style="color:var(--text-muted); padding:1rem;">No volunteer units or volunteers registered yet.</div>';
+    }
+
+    function renderSignals(signals) {
+      const tbody = document.getElementById('signals-table');
+      if (signals.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No signals sent yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = signals.slice(0, 25).map(s => `
+        <tr>
+          <td style="font-family:var(--font-mono); font-size:0.75rem;">${s.signalId}</td>
+          <td><span class="badge badge-low" style="font-size:0.65rem;">${s.signalType.replace(/_/g, ' ')}</span></td>
+          <td style="font-size:0.78rem;">${s.targetTeamId || '@' + s.targetUsername}</td>
+          <td style="font-size:0.78rem; max-width:260px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${s.message || ''}">${s.message || '—'}</td>
+          <td><span class="badge ${s.status === 'ACKNOWLEDGED' ? 'badge-status-verified' : 'badge-moderate'}" style="font-size:0.65rem;">${s.status}</span></td>
+          <td style="font-size:0.72rem; color:var(--text-muted);">${s.formattedSentAt}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function signalTeam(teamId, signalType = 'DEPLOYMENT_CONFIRMED') {
+      const messages = {
+        DEPLOYMENT_CONFIRMED: 'Deployment confirmed. Proceed to assigned mission area and report status.',
+        STANDBY: 'Hold position and remain on standby for further instructions.',
+        STAND_DOWN: 'Mission complete / cancelled. Return to base and stand down.'
+      };
+      try {
+        await RapidResQ.api.sendVolunteerSignal({ signalType, targetTeamId: teamId, message: messages[signalType] });
+        RapidResQ.showToast(`Signal ${signalType.replace(/_/g,' ')} sent to ${teamId} — visible in their portal.`, 'success');
+        loadOps();
+      } catch (err) { RapidResQ.showToast(err.message || 'Signal failed.', 'error'); }
+    }
+
+    async function signalUser(username) {
+      try {
+        await RapidResQ.api.sendVolunteerSignal({ signalType: 'BROADCAST', targetUsername: username, message: 'Direct message from Command Center — check your assignments.' });
+        RapidResQ.showToast(`Signal sent to @${username}.`, 'success');
+        loadOps();
+      } catch (err) { RapidResQ.showToast(err.message || 'Signal failed.', 'error'); }
+    }
+
+    async function sendBroadcast() {
+      const message = document.getElementById('broadcast-msg').value.trim();
+      if (!message) { RapidResQ.showToast('Type a broadcast message first.', 'warning'); return; }
+      try {
+        const sent = await RapidResQ.api.broadcastVolunteers(message, null);
+        RapidResQ.showToast(`Broadcast delivered to ${sent.length} volunteer units.`, 'success');
+        document.getElementById('broadcast-msg').value = '';
+        loadOps();
+      } catch (err) { RapidResQ.showToast(err.message || 'Broadcast failed.', 'error'); }
+    }
+
+    async function runCheck(passed) {
+      const incidentId = document.getElementById('verify-incident').value.trim().toUpperCase();
+      const method = document.getElementById('verify-method').value;
+      const notes = document.getElementById('verify-notes').value.trim();
+      if (!incidentId) { RapidResQ.showToast('Enter an incident ID.', 'warning'); return; }
+      try {
+        const result = await RapidResQ.api.runVerificationCheck(incidentId, method, passed, notes);
+        document.getElementById('verify-result').innerHTML = passed
+          ? `<span style="color:var(--emerald); font-weight:700;">✔ ${result.methodLabel} PASSED</span> — weight ${result.accumulatedWeight !== undefined ? '(total ' + result.accumulatedWeight + ')' : ''} ${result.autoVerified ? '<span class="badge badge-status-verified">INCIDENT AUTO-VERIFIED — reporter +5 Trust</span>' : ''}`
+          : `<span style="color:var(--accent-red); font-weight:700;">⚠ ${result.methodLabel} FLAGGED</span> — recorded for audit`;
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Check failed.', 'error');
+      }
+    }
+
+    async function teamAction(action, payload, successMsg) {
+      const teamId = document.getElementById('ops-team-id').value.trim().toUpperCase();
+      if (!teamId) { RapidResQ.showToast('Enter a team/unit ID.', 'warning'); return; }
+      try {
+        await RapidResQ.api.teamAction(teamId, action, payload);
+        document.getElementById('ops-result').innerHTML = `<span style="color:var(--emerald); font-weight:700;">✔ ${successMsg} (${teamId})</span>`;
+      } catch (err) {
+        document.getElementById('ops-result').innerHTML = `<span style="color:var(--accent-red);">${err.message}</span>`;
+      }
+    }
+
+    async function updatePosition() {
+      const teamId = document.getElementById('ops-team-id').value.trim().toUpperCase();
+      if (!teamId) { RapidResQ.showToast('Enter a team/unit ID.', 'warning'); return; }
+      // Simulated GPS ping: slight random walk around Dhaka
+      const lat = 23.78 + (Math.random() - 0.5) * 0.06;
+      const lon = 90.40 + (Math.random() - 0.5) * 0.06;
+      try {
+        await RapidResQ.api.teamAction(teamId, 'position', { lat, lon });
+        document.getElementById('ops-result').innerHTML = `<span style="color:var(--emerald); font-weight:700;">📍 GPS updated: ${lat.toFixed(4)}, ${lon.toFixed(4)}</span>`;
+      } catch (err) {
+        document.getElementById('ops-result').innerHTML = `<span style="color:var(--accent-red);">${err.message}</span>`;
+      }
+    }
+
+    async function saveSkills() {
+      const teamId = document.getElementById('ops-team-id').value.trim().toUpperCase();
+      const skills = document.getElementById('ops-skills').value.trim();
+      if (!teamId) { RapidResQ.showToast('Enter a team/unit ID.', 'warning'); return; }
+      try {
+        await RapidResQ.api.teamAction(teamId, 'skills', { skillTags: skills });
+        RapidResQ.showToast(`Skills saved for ${teamId}.`, 'success');
+      } catch (err) { RapidResQ.showToast(err.message || 'Save failed.', 'error'); }
+    }
+
+    async function sendDeploymentSignal() {
+      const teamId = document.getElementById('ops-team-id').value.trim().toUpperCase();
+      if (!teamId) { RapidResQ.showToast('Enter a team/unit ID.', 'warning'); return; }
+      await signalTeam(teamId, 'DEPLOYMENT_CONFIRMED');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Command Center | RapidResQ</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <!-- Global Navbar -->
+  <div id="navbar-placeholder"></div>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title" style="color:#7C3AED;">
+          <span>⚙️</span> National Command & Control Center
+        </h1>
+        <p class="page-subtitle">Privileged administrative controls, user trust score adjustments, priority overrides, and 999 audit logs</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="loadAdminData()">🔄 Refresh Console</button>
+    </div>
+
+    <!-- Administrative Quick Stats -->
+    <div class="grid-4">
+      <div class="kpi-card kpi-purple" style="border-left: 4px solid #7C3AED;">
+        <div>
+          <div class="kpi-label">Registered Accounts</div>
+          <div class="kpi-value" id="kpi-users">-</div>
+          <div class="kpi-subtext">Citizens, volunteers & units</div>
+        </div>
+        <div class="kpi-icon" style="background:#EDE9FE; color:#7C3AED;">👥</div>
+      </div>
+      <div class="kpi-card kpi-red">
+        <div>
+          <div class="kpi-label">999 Escalations</div>
+          <div class="kpi-value" id="kpi-escalations">-</div>
+          <div class="kpi-subtext">National emergency triggers</div>
+        </div>
+        <div class="kpi-icon">🚨</div>
+      </div>
+      <div class="kpi-card kpi-blue">
+        <div>
+          <div class="kpi-label">Average Triage Time</div>
+          <div class="kpi-value" id="kpi-avg-time">-</div>
+          <div class="kpi-subtext">From report to clearance</div>
+        </div>
+        <div class="kpi-icon">⏱️</div>
+      </div>
+      <div class="kpi-card kpi-emerald">
+        <div>
+          <div class="kpi-label">Audit Log Events</div>
+          <div class="kpi-value" id="kpi-audit-count">-</div>
+          <div class="kpi-subtext">Tracked lifecycle events</div>
+        </div>
+        <div class="kpi-icon">📝</div>
+      </div>
+    </div>
+
+    <!-- Section 1: User & Trust Score Management -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <h3 class="card-title">👤 User Role & Trust Score Administration</h3>
+        <span style="font-size:0.8rem; color:var(--text-muted);">Real-time trust score tuning & role elevation</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Current Role</th>
+              <th>Trust Rating</th>
+              <th>Status</th>
+              <th>Trust Adjustment</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-table-body">
+            <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Loading user records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 2: Administrative Incident Priority Overrides & Team Reassignment -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <h3 class="card-title">⚡ Incident Priority Overrides & Manual Dispatch</h3>
+        <span style="font-size:0.8rem; color:var(--text-muted);">Direct triage queue re-ordering & team reassignment</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Incident ID</th>
+              <th>Location</th>
+              <th>Severity</th>
+              <th>Current Priority</th>
+              <th>Status</th>
+              <th>Assigned Unit</th>
+              <th>Admin Overrides</th>
+            </tr>
+          </thead>
+          <tbody id="admin-incidents-table">
+            <tr><td colspan="7" style="text-align:center; color:var(--text-muted);">Loading active incidents...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 3: Confidential Donor Registry (decrypted PII, admin-only) -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <h3 class="card-title">🔐 Confidential Donor Registry</h3>
+        <span style="font-size:0.8rem; color:var(--text-muted);">🔒 Decrypted contact details — visible to administrators only</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Donation ID</th>
+              <th>Donor Name</th>
+              <th>Account</th>
+              <th>Phone</th>
+              <th>Address</th>
+              <th>Amount</th>
+              <th>Channel</th>
+              <th>Campaign</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody id="donors-table-body">
+            <tr><td colspan="9" style="text-align:center; color:var(--text-muted);">Loading donor registry...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 4: National 999 Emergency Escalations & Audit Logs -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+      <!-- 999 Escalations Log -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">🚨 National 999 Escalation Stream</h3>
+          <span class="beacon red"></span>
+        </div>
+        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Escalation ID</th>
+                <th>Incident</th>
+                <th>Location</th>
+                <th>Score</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="escalations-table-body">
+              <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Loading 999 escalation logs...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- System Audit Trail -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">📝 System Observer Audit Trail</h3>
+          <span style="font-size:0.8rem; color:var(--text-muted);">StatusLogger Observer</span>
+        </div>
+        <div id="audit-log-container" style="max-height: 380px; overflow-y: auto; display:flex; flex-direction:column; gap:0.5rem; font-family:var(--font-mono); font-size:0.75rem;">
+          <div style="color:var(--text-muted);">Loading system audit trail...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Override Priority Modal -->
+  <div id="override-modal" class="modal-backdrop" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Override Incident Priority</h3>
+        <button class="modal-close" onclick="closeOverrideModal()">&times;</button>
+      </div>
+      <form id="override-form">
+        <div class="modal-body">
+          <input type="hidden" id="override-incident-id">
+          <div class="form-group">
+            <label class="form-label" for="override-priority-val">Set New Priority Score</label>
+            <input type="number" id="override-priority-val" class="form-control" step="0.5" min="0" max="1000" required>
+            <div class="form-hint">Score &ge; 200 immediately triggers 999 national emergency escalation.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline btn-sm" onclick="closeOverrideModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm">Save Override</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      RapidResQ.renderNavbar('admin');
+
+      // Verify admin role
+      if (!RapidResQ.requireAdmin()) return;
+
+      loadAdminData();
+
+      document.getElementById('override-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('override-incident-id').value;
+        const val = parseFloat(document.getElementById('override-priority-val').value);
+
+        try {
+          await RapidResQ.api.overridePriority(id, val);
+          RapidResQ.showToast(`Incident ${id} priority overridden to ${val}!`, 'success');
+          closeOverrideModal();
+          loadAdminData();
+        } catch (err) {
+          RapidResQ.showToast(err.message || 'Override failed.', 'error');
+        }
+      });
+    });
+
+    async function loadAdminData() {
+      try {
+        const [users, incidents, escalations, auditLogs, analytics, teams, donors] = await Promise.all([
+          RapidResQ.api.getAdminUsers(),
+          RapidResQ.api.getIncidents(),
+          RapidResQ.api.getEscalationLogs(),
+          RapidResQ.api.getAuditLogs(),
+          RapidResQ.api.getAnalytics(),
+          RapidResQ.api.getTeams(),
+          RapidResQ.api.getDonorRegistry()
+        ]);
+
+        // KPIs
+        document.getElementById('kpi-users').innerText = (users || []).length;
+        document.getElementById('kpi-escalations').innerText = (escalations || []).length;
+        document.getElementById('kpi-avg-time').innerText = `${analytics ? analytics.averageResponseTimeMinutes : 15}m`;
+        document.getElementById('kpi-audit-count').innerText = (auditLogs || []).length;
+
+        // Render Users
+        renderUsers(users || []);
+
+        // Render Incidents Overrides
+        renderIncidentOverrides(incidents || [], teams || []);
+
+        // Render Donor Registry (decrypted PII)
+        renderDonors(donors || []);
+
+        // Render Escalation Logs
+        renderEscalations(escalations || []);
+
+        // Render Audit Logs
+        renderAuditLogs(auditLogs || []);
+      } catch (err) {
+        console.error('Error loading admin portal data:', err);
+        RapidResQ.showToast('Failed to load administrative telemetry.', 'error');
+      }
+    }
+
+    function renderUsers(users) {
+      const tbody = document.getElementById('users-table-body');
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No users registered.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = users.map(u => `
+        <tr>
+          <td>
+            <strong>${u.username}</strong>
+            ${u.username === 'admin' ? '<span style="font-size:0.75rem; color:#7C3AED;"> (Superuser)</span>' : ''}
+          </td>
+          <td>
+            <select class="form-control form-select" style="width:145px; padding:0.25rem 0.5rem; font-size:0.8rem;" onchange="changeUserRole('${u.username}', this.value)" ${u.username === 'admin' ? 'disabled' : ''}>
+              <option value="CITIZEN" ${u.role === 'CITIZEN' ? 'selected' : ''}>CITIZEN</option>
+              <option value="VOLUNTEER" ${u.role === 'VOLUNTEER' ? 'selected' : ''}>VOLUNTEER</option>
+              <option value="RESPONSE_TEAM" ${u.role === 'RESPONSE_TEAM' ? 'selected' : ''}>RESPONSE_TEAM</option>
+              <option value="ADMIN" ${u.role === 'ADMIN' ? 'selected' : ''}>ADMIN</option>
+            </select>
+          </td>
+          <td>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <span style="font-weight:700; font-family:var(--font-mono);">${u.trustScore}%</span>
+              <div class="progress-container" style="width:70px; height:6px; margin:0;">
+                <div class="progress-bar" style="width:${u.trustScore}%; background:${u.trustScore < 20 ? 'var(--accent-red)' : 'var(--emerald)'};"></div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="badge ${u.active ? 'badge-status-verified' : 'badge-status-resolved'}">
+              ${u.active ? 'ACTIVE' : 'DEACTIVATED'}
+            </span>
+          </td>
+          <td>
+            <div style="display:flex; gap:0.25rem;">
+              <button class="btn btn-outline btn-sm" style="padding:1px 6px; font-size:0.75rem; color:var(--emerald);" onclick="adjustTrust('${u.username}', ${u.trustScore + 5})" title="Reward +5 Trust">+5</button>
+              <button class="btn btn-outline btn-sm" style="padding:1px 6px; font-size:0.75rem; color:var(--accent-red);" onclick="adjustTrust('${u.username}', ${u.trustScore - 20})" title="Penalize -20 Trust">-20</button>
+              <button class="btn btn-outline btn-sm" style="padding:1px 6px; font-size:0.75rem;" onclick="promptCustomTrust('${u.username}', ${u.trustScore})" title="Set custom">Edit</button>
+            </div>
+          </td>
+          <td>
+            ${u.username !== 'admin' ? `
+              <button class="btn ${u.active ? 'btn-danger' : 'btn-success'} btn-sm" style="padding:0.25rem 0.6rem; font-size:0.75rem;" onclick="toggleStatus('${u.username}')">
+                ${u.active ? 'Deactivate' : 'Reactivate'}
+              </button>
+            ` : '<span style="color:var(--text-dim); font-size:0.75rem;">Protected</span>'}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderIncidentOverrides(incidents, teams) {
+      const tbody = document.getElementById('admin-incidents-table');
+      if (incidents.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No incidents found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = incidents.map(inc => `
+        <tr>
+          <td style="font-family:var(--font-mono); font-weight:700;">${inc.id}</td>
+          <td style="font-weight:600;">${inc.location}</td>
+          <td>${RapidResQ.formatSeverityBadge(inc.severity)}</td>
+          <td><span class="priority-score">${inc.priority.toFixed(1)}</span></td>
+          <td>${RapidResQ.formatStatusBadge(inc.status)}</td>
+          <td>
+            <select class="form-control form-select" style="width:170px; padding:0.2rem 0.5rem; font-size:0.75rem;" onchange="reassignTeam('${inc.id}', this.value)" ${inc.status === 'RESOLVED' ? 'disabled' : ''}>
+              <option value="">${inc.assignedTeamId ? `Current: ${inc.assignedTeamId}` : 'Assign Team...'}</option>
+              ${teams.map(t => `<option value="${t.id}" ${inc.assignedTeamId === t.id ? 'selected' : ''}>${t.id} - ${t.name.substring(0, 18)}</option>`).join('')}
+            </select>
+          </td>
+          <td>
+            <div style="display:flex; gap:0.35rem;">
+              <button class="btn btn-outline btn-sm" style="padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="openOverrideModal('${inc.id}', ${inc.priority})">
+                Score
+              </button>
+              ${inc.status !== 'RESOLVED' ? `
+                <button class="btn btn-success btn-sm" style="padding:0.2rem 0.5rem; font-size:0.75rem;" onclick="forceResolve('${inc.id}')">
+                  Force Clear
+                </button>
+              ` : '<span style="color:var(--text-dim); font-size:0.75rem;">Cleared</span>'}
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderDonors(donors) {
+      const tbody = document.getElementById('donors-table-body');
+      if (donors.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--text-muted);">No donations recorded yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = donors.map(d => `
+        <tr>
+          <td style="font-family:var(--font-mono); font-size:0.75rem;">${d.donationId}</td>
+          <td><strong>${d.anonymous ? '🕵️ ' : ''}${d.donorName || d.donorUsername}</strong></td>
+          <td style="font-size:0.8rem; color:var(--text-muted);">@${d.donorUsername}</td>
+          <td style="font-size:0.8rem;">${d.donorPhone || '<span style="color:var(--text-dim);">—</span>'}</td>
+          <td style="font-size:0.8rem; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${d.donorAddress || ''}">${d.donorAddress || '<span style="color:var(--text-dim);">—</span>'}</td>
+          <td><strong style="color:var(--emerald);">${RapidResQ.formatCurrency(d.amountBDT)}</strong></td>
+          <td><span class="badge badge-low" style="font-size:0.65rem;">${d.paymentChannel || 'N/A'}</span></td>
+          <td style="font-family:var(--font-mono); font-size:0.75rem;">${d.reliefNeedId}</td>
+          <td style="font-size:0.75rem; color:var(--text-muted);">${d.formattedTimestamp}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderEscalations(escalations) {
+      const tbody = document.getElementById('escalations-table-body');
+      if (escalations.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No 999 escalations triggered.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = escalations.map(esc => `
+        <tr>
+          <td style="font-family:var(--font-mono); font-weight:700; color:var(--accent-red); font-size:0.8rem;">${esc.escalationId}</td>
+          <td><strong>${esc.incidentId}</strong></td>
+          <td style="font-size:0.8rem;">${esc.location}</td>
+          <td><span class="priority-score" style="font-size:0.75rem;">${(esc.priority || 0).toFixed(1)}</span></td>
+          <td style="font-size:0.75rem; color:var(--text-muted);">${RapidResQ.formatDate(esc.timestamp)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderAuditLogs(logs) {
+      const container = document.getElementById('audit-log-container');
+      if (logs.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted);">No audit events recorded yet.</div>';
+        return;
+      }
+
+      container.innerHTML = logs.slice().reverse().map(l => `
+        <div style="background:var(--bg-card-subtle); padding:0.5rem 0.75rem; border-radius:var(--radius-sm); border-left:3px solid var(--primary);">
+          <div style="display:flex; justify-content:space-between; color:var(--text-muted); font-size:0.7rem;">
+            <span>[${l.formattedTimestamp || l.timestamp}]</span>
+            <strong style="color:var(--primary);">${l.eventType}</strong>
+          </div>
+          <div style="color:var(--text-main); margin-top:0.2rem;">
+            <span style="color:var(--accent-red); font-weight:700;">${l.incidentId}</span> &rarr; ${l.details}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // --- Action Handlers ---
+
+    async function changeUserRole(username, newRole) {
+      try {
+        await RapidResQ.api.updateUserRole(username, newRole);
+        RapidResQ.showToast(`User ${username} role updated to ${newRole}!`, 'success');
+        loadAdminData();
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Failed to update user role.', 'error');
+      }
+    }
+
+    async function adjustTrust(username, score) {
+      try {
+        await RapidResQ.api.updateUserTrust(username, Math.max(0, Math.min(100, score)));
+        RapidResQ.showToast(`User ${username} trust score updated to ${score}%!`, 'success');
+        loadAdminData();
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Failed to update trust score.', 'error');
+      }
+    }
+
+    async function promptCustomTrust(username, current) {
+      const val = prompt(`Enter new trust score (0 - 100) for ${username}:`, current);
+      if (val !== null && !isNaN(val)) {
+        adjustTrust(username, parseInt(val));
+      }
+    }
+
+    async function toggleStatus(username) {
+      try {
+        await RapidResQ.api.toggleUserStatus(username);
+        RapidResQ.showToast(`Account status updated for ${username}!`, 'success');
+        loadAdminData();
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Failed to toggle status.', 'error');
+      }
+    }
+
+    async function reassignTeam(incidentId, teamId) {
+      if (!teamId) return;
+      try {
+        await RapidResQ.api.reassignTeam(incidentId, teamId);
+        RapidResQ.showToast(`Team ${teamId} assigned to incident ${incidentId}!`, 'success');
+        loadAdminData();
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Reassignment failed.', 'error');
+      }
+    }
+
+    async function forceResolve(incidentId) {
+      if (!confirm(`Force resolve incident ${incidentId}? This will release the team and create a relief drive.`)) return;
+      try {
+        await RapidResQ.api.forceResolve(incidentId);
+        RapidResQ.showToast(`Incident ${incidentId} forcefully resolved!`, 'success');
+        loadAdminData();
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Force resolve failed.', 'error');
+      }
+    }
+
+    function openOverrideModal(incidentId, currentPriority) {
+      document.getElementById('override-incident-id').value = incidentId;
+      document.getElementById('override-priority-val').value = currentPriority;
+      document.getElementById('override-modal').style.display = 'flex';
+    }
+
+    function closeOverrideModal() {
+      document.getElementById('override-modal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

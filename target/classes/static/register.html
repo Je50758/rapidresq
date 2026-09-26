@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account | RapidResQ</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body style="background-color: var(--bg-page); min-height: 100vh; display: flex; flex-direction: column;">
+  <div id="navbar-placeholder"></div>
+
+  <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem 1.5rem;">
+    <div class="card" style="max-width: 460px; width: 100%; padding: 2.25rem; box-shadow: var(--shadow-lg);">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <span class="brand-badge" style="width: 48px; height: 48px; font-size: 1.5rem; margin: 0 auto 1rem;">📝</span>
+        <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">Join RapidResQ Network</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+          Register to report crises, verify incidents, and coordinate relief
+        </p>
+      </div>
+
+      <form id="register-form">
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input type="text" id="username" class="form-control" placeholder="e.g. sakib_dhaka" required minlength="3" autofocus>
+          <div class="form-hint">At least 3 characters. Case-insensitive.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" class="form-control" placeholder="••••••••" required minlength="6">
+          <div class="form-hint">At least 6 characters.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Role Registration</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+            <label style="border: 2px solid var(--border-light); border-radius: var(--radius-md); padding: 0.85rem; cursor: pointer; display: block;" id="label-citizen">
+              <input type="radio" name="role" value="CITIZEN" checked style="margin-right: 0.35rem;">
+              <strong>Citizen</strong>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Initial Trust: 50%</div>
+            </label>
+            <label style="border: 2px solid var(--border-light); border-radius: var(--radius-md); padding: 0.85rem; cursor: pointer; display: block;" id="label-volunteer">
+              <input type="radio" name="role" value="VOLUNTEER" style="margin-right: 0.35rem;">
+              <strong>Volunteer</strong>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Initial Trust: 60%</div>
+            </label>
+          </div>
+          <div class="form-hint">Admin and Response Team accounts are assigned by system administrators.</div>
+        </div>
+
+        <div class="form-group" id="volunteer-type-group" style="display:none;">
+          <label class="form-label">Preferred Volunteer Team Type</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;" id="vol-type-grid">
+            <label style="border:1.5px solid var(--border-light); border-radius:var(--radius-md); padding:0.6rem; cursor:pointer; font-size:0.85rem;">
+              <input type="radio" name="volType" value="MEDICAL_AID" style="margin-right:0.35rem;"> 🩺 Medical Aid
+            </label>
+            <label style="border:1.5px solid var(--border-light); border-radius:var(--radius-md); padding:0.6rem; cursor:pointer; font-size:0.85rem;">
+              <input type="radio" name="volType" value="RESCUE" checked style="margin-right:0.35rem;"> 🛟 Rescue & Evacuation
+            </label>
+            <label style="border:1.5px solid var(--border-light); border-radius:var(--radius-md); padding:0.6rem; cursor:pointer; font-size:0.85rem;">
+              <input type="radio" name="volType" value="LOGISTICS" style="margin-right:0.35rem;"> 📦 Logistics & Relief
+            </label>
+            <label style="border:1.5px solid var(--border-light); border-radius:var(--radius-md); padding:0.6rem; cursor:pointer; font-size:0.85rem;">
+              <input type="radio" name="volType" value="COMMUNICATION" style="margin-right:0.35rem;"> 📡 Communication & Data
+            </label>
+            <label style="border:1.5px solid var(--border-light); border-radius:var(--radius-md); padding:0.6rem; cursor:pointer; font-size:0.85rem; grid-column:1 / -1;">
+              <input type="radio" name="volType" value="FIRE_SUPPORT" style="margin-right:0.35rem;"> 🧯 Fire Support
+            </label>
+          </div>
+          <div class="form-hint">Admins can see and deploy you with your unit type. You can be signaled for missions any time.</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem; padding: 0.75rem;">
+          Create Free Account
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 1.75rem; font-size: 0.85rem; color: var(--text-muted);">
+        Already registered? <a href="/login.html" style="color: var(--primary); font-weight: 600; text-decoration: none;">Sign in here</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      RapidResQ.renderNavbar('register');
+
+      // Toggle volunteer team-type picker
+      const volTypeGroup = document.getElementById('volunteer-type-group');
+      document.querySelectorAll('input[name="role"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+          volTypeGroup.style.display = document.querySelector('input[name="role"]:checked').value === 'VOLUNTEER' ? 'block' : 'none';
+        });
+      });
+
+      document.getElementById('register-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        const role = document.querySelector('input[name="role"]:checked').value;
+        const volType = document.querySelector('input[name="volType"]:checked');
+
+        const payload = { username, password, role };
+        if (role === 'VOLUNTEER' && volType) payload.volunteerTeamType = volType.value;
+
+        try {
+          const res = await RapidResQ.api.register(username, password, role, payload.volunteerTeamType);
+          RapidResQ.showToast(`Account created successfully! Welcome ${res.username}`, 'success');
+          setTimeout(() => window.location.href = '/dashboard.html', 500);
+        } catch (err) {
+          RapidResQ.showToast(err.message || 'Registration failed.', 'error');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

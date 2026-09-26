@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Situation Reports | RapidResQ</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><span>📋</span> Community Situation Reports</h1>
+        <p class="page-subtitle">Public post-disaster reports: response summary, available resources, and nearby shelters &amp; safe areas — open to everyone</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="loadReports()">🔄 Refresh</button>
+    </div>
+
+    <div id="reports-container" style="display:flex; flex-direction:column; gap:1.5rem;">
+      <div class="card" style="text-align:center; padding:3rem;">Loading community reports...</div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      RapidResQ.renderNavbar('reports');
+      loadReports();
+    });
+
+    function parsePayload(json) {
+      try { return JSON.parse(json); } catch (e) { return { availableResources: [], nearbySafeLocations: [] }; }
+    }
+
+    async function loadReports() {
+      try {
+        const reports = await fetch('/api/public/mission-reports').then(r => r.json());
+        const container = document.getElementById('reports-container');
+
+        if (!reports || reports.length === 0) {
+          container.innerHTML = '<div class="card" style="text-align:center; padding:3rem;">No resolved disasters yet. When an emergency is cleared, its public situation report appears here automatically.</div>';
+          return;
+        }
+
+        container.innerHTML = reports.map(rep => {
+          const payload = parsePayload(rep.availableResourcesJson || '{}');
+          const resources = payload.availableResources || [];
+          const safeAreas = payload.nearbySafeLocations || [];
+
+          return `
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  ${RapidResQ.getDisasterIcon(rep.disasterType)} ${rep.disasterType} • ${rep.location}
+                </h3>
+                <span class="badge badge-status-verified">✓ RESOLVED & CLEARED</span>
+              </div>
+
+              <div style="padding: 0.25rem 1.25rem 1.25rem;">
+                <p style="font-size:0.95rem; color:var(--text-main); margin-bottom:1rem;">${rep.summary}</p>
+
+                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem; margin-bottom:1.25rem;">
+                  <div style="background:var(--bg-card-subtle); border-radius:var(--radius-md); padding:0.75rem; text-align:center;">
+                    <div style="font-size:1.3rem; font-weight:800; color:var(--primary);">${rep.totalInjuredHandled}</div>
+                    <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Injured Handled</div>
+                  </div>
+                  <div style="background:var(--bg-card-subtle); border-radius:var(--radius-md); padding:0.75rem; text-align:center;">
+                    <div style="font-size:1.3rem; font-weight:800; color:var(--primary);">${rep.teamsDeployedCount}</div>
+                    <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Teams Deployed</div>
+                  </div>
+                  <div style="background:var(--bg-card-subtle); border-radius:var(--radius-md); padding:0.75rem; text-align:center;">
+                    <div style="font-size:1.3rem; font-weight:800; color:var(--primary);">${rep.verificationChecksPassed}</div>
+                    <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Verification Checks</div>
+                  </div>
+                  <div style="background:var(--bg-card-subtle); border-radius:var(--radius-md); padding:0.75rem; text-align:center;">
+                    <div style="font-size:1.3rem; font-weight:800; color:var(--primary);">${rep.volunteerSignalsSent}</div>
+                    <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Volunteer Signals</div>
+                  </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem;">
+                  <!-- Safe areas & shelters -->
+                  <div>
+                    <h4 style="font-size:0.9rem; font-weight:800; color:var(--emerald); margin-bottom:0.6rem;">🏠 Nearby Shelters & Safe Areas</h4>
+                    ${safeAreas.length === 0 ? '<div style="font-size:0.82rem; color:var(--text-muted);">No registered safe areas within 25 km of this location.</div>' :
+                      safeAreas.slice(0, 5).map(s => `
+                        <div style="border:1px solid var(--border-light); border-left:3px solid var(--emerald); border-radius:var(--radius-md); padding:0.6rem 0.9rem; margin-bottom:0.5rem;">
+                          <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong style="font-size:0.85rem; color:var(--primary);">${s.name}</strong>
+                            <span class="badge badge-low" style="font-size:0.6rem;">${s.distanceKm} km</span>
+                          </div>
+                          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">
+                            ${s.type} • 👥 capacity ${s.capacityPersons} • 📞 ${s.contact}
+                            ${s.hasMedicalPoint ? ' • 🩺 medical point' : ''}${s.hasWaterSupply ? ' • 💧 water' : ''}
+                          </div>
+                          <div style="font-size:0.72rem; color:var(--text-dim); margin-top:0.15rem;">${s.address}</div>
+                        </div>
+                      `).join('')}
+                  </div>
+
+                  <!-- Available resources -->
+                  <div>
+                    <h4 style="font-size:0.9rem; font-weight:800; color:var(--blue); margin-bottom:0.6rem;">🚒 Resources Still Available for This Disaster Type</h4>
+                    ${resources.length === 0 ? '<div style="font-size:0.82rem; color:var(--text-muted);">No matching resources currently free — units may be committed elsewhere.</div>' :
+                      `<div class="table-responsive"><table class="table" style="font-size:0.78rem;">
+                        <thead><tr><th>Resource</th><th>Qty</th><th>Held By</th></tr></thead>
+                        <tbody>
+                          ${resources.slice(0, 8).map(r => `
+                            <tr>
+                              <td>${r.name}</td>
+                              <td>x${r.quantity}</td>
+                              <td style="font-family:var(--font-mono); font-size:0.7rem;">${r.heldByTeam}</td>
+                            </tr>`).join('')}
+                        </tbody>
+                      </table></div>`}
+                  </div>
+                </div>
+
+                <div style="margin-top:1rem; font-size:0.72rem; color:var(--text-dim);">
+                  Report ${rep.reportId} • Generated ${rep.formattedGeneratedAt} • by ${rep.generatedBy} • Public community information
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        document.getElementById('reports-container').innerHTML =
+          '<div class="card" style="text-align:center; padding:2rem; color:var(--accent-red);">Failed to load reports: ' + err.message + '</div>';
+      }
+    }
+  </script>
+</body>
+</html>

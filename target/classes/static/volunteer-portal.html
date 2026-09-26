@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volunteer Portal | RapidResQ</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div id="navbar-placeholder"></div>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><span>🤝</span> Volunteer Field Portal</h1>
+        <p class="page-subtitle">Your mission signals, deployment confirmations and broadcast alerts from the Command Center</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="loadPortal()">🔄 Refresh Inbox</button>
+    </div>
+
+    <!-- Volunteer identity card -->
+    <div class="card" style="margin-bottom:1.5rem; padding:1.25rem 1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <div style="font-size:0.75rem; text-transform:uppercase; color:var(--text-dim); font-weight:700;">Signed-in Volunteer</div>
+        <div style="font-size:1.2rem; font-weight:800; color:var(--primary);" id="portal-username">...</div>
+      </div>
+      <div id="portal-team-type" class="badge badge-status-progress" style="font-size:0.85rem;">...</div>
+      <div style="text-align:right;">
+        <div style="font-size:0.75rem; text-transform:uppercase; color:var(--text-dim); font-weight:700;">Unread Signals</div>
+        <div style="font-size:1.6rem; font-weight:800; color:var(--accent-red);" id="portal-unread">0</div>
+      </div>
+    </div>
+
+    <!-- Signal inbox -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">📨 Mission Signal Inbox</h3>
+        <span class="beacon red"></span>
+      </div>
+      <div id="signal-inbox" style="display:flex; flex-direction:column; gap:0.75rem; padding: 0 0 0.5rem;">
+        <div style="color:var(--text-muted); font-size:0.85rem; padding:1rem;">Loading signals...</div>
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      RapidResQ.renderNavbar('volunteer');
+      if (!RapidResQ.requireAuth()) return;
+      loadPortal();
+    });
+
+    async function loadPortal() {
+      try {
+        const inbox = await RapidResQ.api.getVolunteerInbox();
+        document.getElementById('portal-username').innerText = '@' + inbox.username;
+        document.getElementById('portal-team-type').innerText =
+            inbox.teamType ? inbox.teamType.replace('_', ' ') + ' UNIT' : 'FLEX UNIT';
+        document.getElementById('portal-unread').innerText = inbox.unreadCount || 0;
+
+        const signals = inbox.signals || [];
+        const container = document.getElementById('signal-inbox');
+
+        if (signals.length === 0) {
+          container.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem; padding:1rem;">📭 No signals yet. When the Command Center confirms your deployment or broadcasts an alert, it appears here instantly.</div>';
+          return;
+        }
+
+        container.innerHTML = signals.map(s => {
+          const isUnread = s.status === 'SENT';
+          const typeBadge = {
+            DEPLOYMENT_CONFIRMED: 'badge-status-verified',
+            STANDBY: 'badge-moderate',
+            MOVE_TO_LOCATION: 'badge-high',
+            STAND_DOWN: 'badge-low',
+            BROADCAST: 'badge-status-progress'
+          }[s.signalType] || 'badge-low';
+
+          return `
+            <div style="border:1px solid var(--border-light); border-left:4px solid ${isUnread ? 'var(--accent-red)' : 'var(--emerald)'}; border-radius:var(--radius-md); padding:0.9rem 1.1rem; background:${isUnread ? 'var(--accent-red-soft)' : 'var(--bg-card-subtle)'};">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                <div>
+                  <span class="badge ${typeBadge}">${s.signalType.replace(/_/g, ' ')}</span>
+                  ${isUnread ? '<span class="badge badge-critical" style="font-size:0.6rem;">● NEW</span>' : ''}
+                  ${s.incidentId && s.incidentId !== '-' ? `<span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); margin-left:0.4rem;">${s.incidentId}</span>` : ''}
+                </div>
+                <span style="font-size:0.72rem; color:var(--text-muted);">🕐 ${s.formattedSentAt}</span>
+              </div>
+              <div style="margin-top:0.5rem; font-size:0.9rem; color:var(--text-main);">${s.message || 'No additional details.'}</div>
+              ${s.location ? `<div style="margin-top:0.25rem; font-size:0.78rem; color:var(--text-muted);">📍 ${s.location}</div>` : ''}
+              <div style="margin-top:0.6rem; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.72rem; color:var(--text-dim);">From: ${s.sentByAdmin || 'Command Center'}</span>
+                ${isUnread
+                  ? `<button class="btn btn-success btn-sm" style="padding:0.25rem 0.8rem;" onclick="ack('${s.signalId}')">✔ Acknowledge</button>`
+                  : '<span style="font-size:0.72rem; color:var(--emerald); font-weight:700;">✓ Acknowledged</span>'}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Failed to load portal.', 'error');
+      }
+    }
+
+    async function ack(signalId) {
+      try {
+        await RapidResQ.api.ackSignal(signalId);
+        RapidResQ.showToast('Signal acknowledged — Command Center can see your confirmation.', 'success');
+        loadPortal();
+      } catch (err) {
+        RapidResQ.showToast(err.message || 'Acknowledge failed.', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

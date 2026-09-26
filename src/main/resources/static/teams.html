@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Response Units Fleet | RapidResQ</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <!-- Global Navbar -->
+  <div id="navbar-placeholder"></div>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">
+          <span>🚒</span> Emergency Response Fleet & Units
+        </h1>
+        <p class="page-subtitle">Specialized tactical rescue teams, logistical resources, and field deployment status</p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="loadTeams()">🔄 Refresh Units</button>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="grid-4">
+      <div class="kpi-card kpi-emerald">
+        <div>
+          <div class="kpi-label">Available Units</div>
+          <div class="kpi-value" id="kpi-avail">-</div>
+          <div class="kpi-subtext">Ready for immediate dispatch</div>
+        </div>
+        <div class="kpi-icon">🟢</div>
+      </div>
+      <div class="kpi-card kpi-red">
+        <div>
+          <div class="kpi-label">Dispatched Units</div>
+          <div class="kpi-value" id="kpi-busy">-</div>
+          <div class="kpi-subtext">Engaged in active operations</div>
+        </div>
+        <div class="kpi-icon">🚨</div>
+      </div>
+      <div class="kpi-card kpi-blue">
+        <div>
+          <div class="kpi-label">Total Fleet Units</div>
+          <div class="kpi-value" id="kpi-total">-</div>
+          <div class="kpi-subtext">Across all divisions</div>
+        </div>
+        <div class="kpi-icon">🛡️</div>
+      </div>
+      <div class="kpi-card kpi-amber">
+        <div>
+          <div class="kpi-label">Composed Resources</div>
+          <div class="kpi-value" id="kpi-resources">-</div>
+          <div class="kpi-subtext">Vehicles & equipment deployed</div>
+        </div>
+        <div class="kpi-icon">📦</div>
+      </div>
+    </div>
+
+    <!-- Teams Grid -->
+    <div class="grid-2" id="teams-grid">
+      <div class="card" style="text-align:center; padding:3rem; grid-column:1 / -1;">
+        Loading response fleet telemetry...
+      </div>
+    </div>
+  </main>
+
+  <script src="/js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      RapidResQ.renderNavbar('teams');
+      loadTeams();
+    });
+
+    async function loadTeams() {
+      try {
+        const teams = await RapidResQ.api.getTeams();
+        const grid = document.getElementById('teams-grid');
+
+        if (!teams || teams.length === 0) {
+          grid.innerHTML = '<div class="card" style="text-align:center; grid-column:1 / -1;">No response units found.</div>';
+          return;
+        }
+
+        let availCount = 0;
+        let busyCount = 0;
+        let totalResources = 0;
+
+        grid.innerHTML = teams.map(t => {
+          if (t.status === 'AVAILABLE') availCount++;
+          else busyCount++;
+
+          const resList = t.resources || [];
+          totalResources += resList.length;
+
+          let typeIcon = '🚒';
+          if (t.teamType === 'MEDICAL') typeIcon = '🚑';
+          else if (t.teamType === 'RESCUE') typeIcon = '🚤';
+          else if (t.teamType === 'VOLUNTEER') typeIcon = '🤝';
+
+          let statusBadgeClass = t.status === 'AVAILABLE' ? 'badge-status-verified' : 'badge-critical';
+
+          return `
+            <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+              <div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+                  <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <span style="font-size:1.8rem;">${typeIcon}</span>
+                    <div>
+                      <h3 style="font-size:1.15rem; font-weight:800; color:var(--primary); line-height:1.2;">${t.name}</h3>
+                      <div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-dim); margin-top:2px;">ID: ${t.id} • ${t.contactNumber}</div>
+                    </div>
+                  </div>
+                  <span class="badge ${statusBadgeClass}">
+                    ${t.status === 'AVAILABLE' ? '<span class="beacon"></span> AVAILABLE' : '🚨 DISPATCHED'}
+                  </span>
+                </div>
+
+                <div style="background:var(--bg-card-subtle); padding:0.75rem 1rem; border-radius:var(--radius-md); font-size:0.85rem; margin-bottom:1rem;">
+                  <div><strong>Specialization:</strong> ${t.specialization}</div>
+                  <div style="margin-top:0.25rem;"><strong>Base Station:</strong> 📍 ${t.baseStation}</div>
+                  ${t.assignedIncidentId ? `
+                    <div style="margin-top:0.35rem; color:var(--accent-red); font-weight:700;">
+                      Engaged at Incident: <a href="/dashboard.html" style="color:var(--accent-red); text-decoration:underline;">${t.assignedIncidentId}</a>
+                    </div>
+                  ` : ''}
+                </div>
+
+                <!-- Composed Resources Section (OOP Composition) -->
+                <div>
+                  <div style="font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--text-muted); margin-bottom:0.5rem; letter-spacing:0.04em;">
+                    Equipped Resources (${resList.length})
+                  </div>
+                  <div style="display:flex; flex-wrap:wrap; gap:0.4rem;">
+                    ${resList.length > 0 ? resList.map(r => `
+                      <span style="background:white; border:1px solid var(--border-light); border-radius:var(--radius-sm); padding:0.25rem 0.55rem; font-size:0.75rem; display:inline-flex; align-items:center; gap:0.35rem;">
+                        <strong>${r.name}</strong>
+                        <span style="color:var(--text-dim); font-size:0.7rem;">(${r.quantity}x • ${r.condition})</span>
+                      </span>
+                    `).join('') : '<span style="font-size:0.75rem; color:var(--text-muted);">Standard tactical gear</span>'}
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:1.25rem; padding-top:1rem; border-top:1px solid var(--border-light); display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.8rem; color:var(--text-muted);">
+                  ${t.status === 'AVAILABLE' ? '🟢 Ready on standby' : '🔴 Mission in progress'}
+                </span>
+                ${t.status === 'AVAILABLE' ? `
+                  <a href="/dashboard.html" class="btn btn-outline btn-sm">Assign to Incident</a>
+                ` : `
+                  <a href="/dashboard.html" class="btn btn-outline btn-sm">Inspect Mission</a>
+                `}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById('kpi-avail').innerText = availCount;
+        document.getElementById('kpi-busy').innerText = busyCount;
+        document.getElementById('kpi-total').innerText = teams.length;
+        document.getElementById('kpi-resources').innerText = totalResources;
+      } catch (err) {
+        console.error('Failed to load teams:', err);
+        RapidResQ.showToast('Failed to load response fleet data.', 'error');
+      }
+    }
+  </script>
+</body>
+</html>
